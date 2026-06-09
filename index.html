@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🪙 Token Clicker — Build Your AI Empire</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div id="game-container">
+        <!-- Header / Stats Bar -->
+        <header id="stats-bar">
+            <div class="stat">
+                <span class="stat-label">🪙 Tokens</span>
+                <span id="token-count" class="stat-value">0</span>
+            </div>
+            <div class="stat">
+                <span class="stat-label">⚡ per second</span>
+                <span id="tps" class="stat-value">0.0</span>
+            </div>
+            <div class="stat">
+                <span class="stat-label">🖱️ per click</span>
+                <span id="click-power" class="stat-value">1</span>
+            </div>
+        </header>
+
+        <main id="main-area">
+            <!-- Left: Click Zone -->
+            <section id="click-zone">
+                <div id="click-button-wrapper">
+                    <button id="click-button">
+                        <span class="click-icon">🧠</span>
+                        <span class="click-text">Generate Tokens</span>
+                    </button>
+                </div>
+                <div id="click-particles"></div>
+
+                <!-- Events / Notifications -->
+                <div id="event-log">
+                    <div class="log-entry welcome">Welcome to Token Clicker! Click the brain to start generating tokens.</div>
+                </div>
+            </section>
+
+            <!-- Right: Shop -->
+            <section id="shop">
+                <div class="shop-tabs">
+                    <button class="tab active" data-tab="buildings">🏗️ Buildings</button>
+                    <button class="tab" data-tab="upgrades">⬆️ Upgrades</button>
+                    <button class="tab" data-tab="models">🤖 Models</button>
+                </div>
+
+                <div id="tab-buildings" class="tab-content active">
+                    <div id="buildings-list"></div>
+                </div>
+
+                <div id="tab-upgrades" class="tab-content">
+                    <div id="upgrades-list"></div>
+                </div>
+
+                <div id="tab-models" class="tab-content">
+                    <div id="models-list"></div>
+                </div>
+            </section>
+        </main>
+
+        <!-- Footer -->
+        <footer id="game-footer">
+            <button id="save-btn" class="footer-btn">💾 Save</button>
+            <button id="reset-btn" class="footer-btn danger">🗑️ Reset</button>
+            <span id="last-save">Auto-saves every 30s</span>
+        </footer>
+    </div>
+
+    <script src="js/buildings.js"></script>
+    <script src="js/upgrades.js"></script>
+    <script src="js/companies.js"></script>
+    <script src="js/save.js"></script>
+    <script src="js/ui.js"></script>
+    <script src="js/game.js"></script>
+</body>
+</html>

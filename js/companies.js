@@ -1,0 +1,103 @@
+// Parody AI Companies & their model families
+const COMPANIES = [
+    {
+        id: 'philanthropic',
+        name: 'Philanthropic',
+        tagline: 'Building AI that cares... eventually',
+        color: '#d4a574',
+        models: [
+            { id: 'clyde-haiku', name: 'Clyde 3 Haiku', tier: 1, bonus: { type: 'speed', value: 1.2 }, flavor: 'Small, fast, writes poetry about safety' },
+            { id: 'clyde-sonnet', name: 'Clyde 3.5 Sonnet', tier: 2, bonus: { type: 'quality', value: 1.5 }, flavor: 'The workhorse. Refuses politely.' },
+            { id: 'clyde-opus', name: 'Clyde 3.5 Opus', tier: 3, bonus: { type: 'all', value: 1.8 }, flavor: 'Expensive but writes dissertations on ethics' },
+            { id: 'clyde-4-sonnet', name: 'Clyde 4 Sonnet', tier: 4, bonus: { type: 'code', value: 2.5 }, flavor: '"The one that codes" — and philosophizes about it' },
+            { id: 'clyde-4-opus', name: 'Clyde 4 Opus', tier: 5, bonus: { type: 'all', value: 3.0 }, flavor: 'Extended Pondering™ enabled. May take a while.' },
+        ],
+    },
+    {
+        id: 'openbrain',
+        name: 'OpenBrain',
+        tagline: 'Open in name only™',
+        color: '#74d4a5',
+        models: [
+            { id: 'bpt-35-turbo', name: 'BPT-3.5 Turbo', tier: 1, bonus: { type: 'speed', value: 1.3 }, flavor: 'Everyone\'s first model. Still works!' },
+            { id: 'bpt-4', name: 'BPT-4', tier: 2, bonus: { type: 'quality', value: 1.6 }, flavor: 'The one that started it all (again)' },
+            { id: 'bpt-4o', name: 'BPT-4o', tier: 3, bonus: { type: 'multimodal', value: 2.0 }, flavor: 'Can see! Can hear! Can... charge more!' },
+            { id: 'bpt-o1', name: 'BPT-o1 "Strawberry"', tier: 4, bonus: { type: 'reasoning', value: 2.5 }, flavor: 'Thinks for 3 minutes. Bills you for 30.' },
+            { id: 'bpt-5', name: 'BPT-5', tier: 5, bonus: { type: 'all', value: 3.5 }, flavor: 'The board fired everyone to make this' },
+        ],
+    },
+    {
+        id: 'noodle',
+        name: 'Noodle',
+        tagline: 'We have infinite compute and we\'re not afraid to use it',
+        color: '#74a5d4',
+        models: [
+            { id: 'gemstone-flash', name: 'Gemstone 1.5 Flash', tier: 1, bonus: { type: 'speed', value: 1.5 }, flavor: 'Fast as lightning, depth of a puddle' },
+            { id: 'gemstone-pro', name: 'Gemstone 1.5 Pro', tier: 2, bonus: { type: 'quality', value: 1.4 }, flavor: 'Actually works now (third time\'s the charm)' },
+            { id: 'gemstone-2-flash', name: 'Gemstone 2.0 Flash', tier: 3, bonus: { type: 'speed', value: 2.2 }, flavor: 'So fast it answers before you ask' },
+            { id: 'gemstone-25-pro', name: 'Gemstone 2.5 Pro', tier: 4, bonus: { type: 'reasoning', value: 2.3 }, flavor: 'Deep Think mode: "Hold my TPU"' },
+            { id: 'gemstone-ultra', name: 'Gemstone Ultra', tier: 5, bonus: { type: 'all', value: 3.2 }, flavor: '2 million tokens of context. Remembers everything. Judges you.' },
+        ],
+    },
+    {
+        id: 'macrohard',
+        name: 'Macrohard',
+        tagline: 'Enterprise-grade AI with enterprise-grade pricing',
+        color: '#a574d4',
+        models: [
+            { id: 'co-parrot-1', name: 'Co-Parrot 1.0', tier: 1, bonus: { type: 'code', value: 1.3 }, flavor: 'Autocomplete became sentient' },
+            { id: 'co-parrot-workspace', name: 'Co-Parrot Workspace', tier: 2, bonus: { type: 'code', value: 1.8 }, flavor: 'Lives in your IDE. Knows your secrets.' },
+            { id: 'co-parrot-agent', name: 'Co-Parrot Agent', tier: 3, bonus: { type: 'automation', value: 2.0 }, flavor: 'Does your PRs while you sleep' },
+            { id: 'phi-4-mini', name: 'Phi-4 Mini', tier: 2, bonus: { type: 'efficiency', value: 1.6 }, flavor: 'Tiny but mighty. Runs on a potato.' },
+            { id: 'co-parrot-ultra', name: 'Co-Parrot Ultra', tier: 5, bonus: { type: 'all', value: 2.8 }, flavor: 'Includes Clippy 2.0 as a free bonus' },
+        ],
+    },
+    {
+        id: 'zeta',
+        name: 'Zeta',
+        tagline: 'Open source go brrrr',
+        color: '#d47474',
+        models: [
+            { id: 'llamba-2-7b', name: 'Llamba 2 7B', tier: 1, bonus: { type: 'efficiency', value: 1.2 }, flavor: 'Small, free, community-loved' },
+            { id: 'llamba-3-70b', name: 'Llamba 3 70B', tier: 2, bonus: { type: 'quality', value: 1.5 }, flavor: 'Community fine-tunes go crazy' },
+            { id: 'llamba-31-405b', name: 'Llamba 3.1 405B', tier: 3, bonus: { type: 'all', value: 1.8 }, flavor: '"Open source GPT-4" — their words, not ours' },
+            { id: 'llamba-4-scout', name: 'Llamba 4 Scout', tier: 4, bonus: { type: 'speed', value: 2.0 }, flavor: 'Lightweight agent, finds what you need' },
+            { id: 'llamba-4-maverick', name: 'Llamba 4 Maverick', tier: 5, bonus: { type: 'all', value: 2.5 }, flavor: 'Mixture of Experts: 8 llambas in a trenchcoat' },
+        ],
+    },
+    {
+        id: 'yai',
+        name: 'yAI',
+        tagline: 'Move fast and break benchmarks',
+        color: '#d4d474',
+        models: [
+            { id: 'gronk-1', name: 'Gronk 1', tier: 1, bonus: { type: 'chaos', value: 1.5 }, flavor: 'Unfiltered. Unhinged. Unpredictable.' },
+            { id: 'gronk-2', name: 'Gronk 2', tier: 2, bonus: { type: 'chaos', value: 2.0 }, flavor: 'Now with 50% less accidental manifestos' },
+            { id: 'gronk-3', name: 'Gronk 3', tier: 4, bonus: { type: 'all', value: 2.5 }, flavor: '"Fun mode" is not optional. It\'s the only mode.' },
+        ],
+    },
+    {
+        id: 'sirocco',
+        name: 'Sirocco',
+        tagline: 'Oui oui, efficient AI',
+        color: '#74d4d4',
+        models: [
+            { id: 'croissant-7b', name: 'Croissant 7B', tier: 1, bonus: { type: 'efficiency', value: 1.4 }, flavor: 'Tiny, European, punches above its weight' },
+            { id: 'croissant-nemo', name: 'Croissant Nemo', tier: 2, bonus: { type: 'quality', value: 1.5 }, flavor: 'A collab. Finding itself.' },
+            { id: 'croissant-large', name: 'Croissant Large (Le Grand)', tier: 3, bonus: { type: 'all', value: 1.9 }, flavor: 'Sacré bleu, it\'s actually good' },
+            { id: 'codestral', name: 'Codestral', tier: 3, bonus: { type: 'code', value: 2.2 }, flavor: 'Le code. C\'est magnifique.' },
+            { id: 'croissant-moe', name: 'Croissant MoE', tier: 5, bonus: { type: 'all', value: 2.7 }, flavor: 'Mixture of Croissants™' },
+        ],
+    },
+    {
+        id: 'deepdive',
+        name: 'DeepDive',
+        tagline: 'Why pay more when you can pay less?',
+        color: '#74d4a0',
+        models: [
+            { id: 'abyssal-v2', name: 'Abyssal V2', tier: 1, bonus: { type: 'efficiency', value: 1.5 }, flavor: 'Costs nothing. Surprisingly decent.' },
+            { id: 'abyssal-coder', name: 'Abyssal Coder', tier: 2, bonus: { type: 'code', value: 1.8 }, flavor: 'Your 10x engineer for 0.1x the price' },
+            { id: 'abyssal-r1', name: 'Abyssal R1', tier: 4, bonus: { type: 'reasoning', value: 2.5 }, flavor: 'Reasoning at 1/10th the cost. How? Don\'t ask.' },
+        ],
+    },
+];
