@@ -56,6 +56,58 @@ body {
     align-items: center;
     gap: 0.25rem;
     position: relative;
+    cursor: help;
+}
+
+/* Tooltip on hover */
+.stat[data-tooltip]::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    margin-top: 0.5rem;
+    padding: 0.6rem 0.8rem;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    font-size: 0.7rem;
+    font-family: var(--font-sans);
+    color: var(--text-secondary);
+    white-space: normal;
+    width: 200px;
+    text-align: center;
+    text-transform: none;
+    letter-spacing: normal;
+    line-height: 1.4;
+    z-index: 200;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+.stat[data-tooltip]:hover::after {
+    opacity: 1;
+}
+
+/* Net token flow indicator */
+.stat-net {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    font-weight: 600;
+}
+
+.stat-net.positive {
+    color: var(--accent-green);
+}
+
+.stat-net.negative {
+    color: var(--accent-red);
+}
+
+.stat-net.zero {
+    color: var(--text-muted);
 }
 
 .stat-label {

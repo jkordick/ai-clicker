@@ -58,6 +58,22 @@ const UI = {
         this.elements.iqCount.textContent = this.formatNumber(intelligence);
         this.elements.iqPerSec.textContent = this.formatTps(iqps);
         this.elements.drainPerSec.textContent = this.formatTps(drain);
+
+        // Net token flow indicator
+        const net = tps - drain;
+        const netEl = document.getElementById('token-net');
+        if (netEl) {
+            if (net > 0) {
+                netEl.textContent = `+${this.formatTps(net)}/s`;
+                netEl.className = 'stat-net positive';
+            } else if (net < 0) {
+                netEl.textContent = `${this.formatTps(net)}/s`;
+                netEl.className = 'stat-net negative';
+            } else {
+                netEl.textContent = '±0/s';
+                netEl.className = 'stat-net zero';
+            }
+        }
     },
 
     // Render buildings list
