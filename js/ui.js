@@ -189,7 +189,17 @@ const UI = {
 
                 const canAfford = state.intelligence >= cost;
                 let cssClass = owned ? (active ? 'model-active' : 'model-owned') : (!canAfford ? 'cant-afford' : '');
-                let actionText = owned ? (active ? '✓ ACTIVE' : 'ACTIVATE') : `🧠 ${this.formatNumber(cost)}`;
+                let actionText, actionClass;
+                if (active) {
+                    actionText = '⏹ DEACTIVATE';
+                    actionClass = 'active';
+                } else if (owned) {
+                    actionText = '▶ ACTIVATE';
+                    actionClass = 'owned';
+                } else {
+                    actionText = `🧠 ${this.formatNumber(cost)}`;
+                    actionClass = '';
+                }
 
                 return `
                     <div class="model-card ${cssClass}" data-model-id="${model.id}" style="border-left: 3px solid ${company.color}">
@@ -202,7 +212,7 @@ const UI = {
                             <span>IQ: ${model.iqOutput}/s</span>
                         </div>
                         <div class="model-specialty">${model.specialty.desc}</div>
-                        <div class="model-action ${owned ? 'owned' : ''}">${actionText}</div>
+                        <div class="model-action ${actionClass}">${actionText}</div>
                     </div>
                 `;
             }).join('');

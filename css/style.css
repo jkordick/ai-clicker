@@ -656,6 +656,11 @@ body {
     color: var(--accent-green);
 }
 
+.model-action.active {
+    color: var(--accent-red);
+    opacity: 0.8;
+}
+
 .model-info-bar {
     display: flex;
     justify-content: space-between;

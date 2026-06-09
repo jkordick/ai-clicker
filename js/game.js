@@ -20,6 +20,12 @@ const Game = {
             if (!this.state.modelSlots) this.state.modelSlots = 1;
             if (!this.state.iqCostMultiplier) this.state.iqCostMultiplier = 1;
 
+            // Fix: trim active models to slot limit
+            const maxSlots = this.state.modelSlots;
+            if (this.state.activeModels.length > maxSlots) {
+                this.state.activeModels = this.state.activeModels.slice(0, maxSlots);
+            }
+
             // Handle offline progress
             if (saved._offlineSeconds && saved._offlineSeconds > 5) {
                 const offlineTps = this.calculateTps();
@@ -332,14 +338,7 @@ const Game = {
         if (this.state.intelligence >= cost) {
             this.state.intelligence -= cost;
             this.state.ownedModels.push(modelId);
-
-            // Auto-activate if we have a free slot
-            if (this.state.activeModels.length < this.getModelSlots()) {
-                this.state.activeModels.push(modelId);
-                UI.log(`Acquired & activated: ${model.name}!`, 'achievement');
-            } else {
-                UI.log(`Acquired: ${model.name}! Swap it in from the Models tab.`, 'purchase');
-            }
+            UI.log(`Acquired: ${model.name}! Activate it from the Models tab.`, 'purchase');
             this.renderShop();
         }
     },
@@ -354,6 +353,8 @@ const Game = {
             if (this.state.activeModels.length > 1) {
                 this.state.activeModels = this.state.activeModels.filter(id => id !== modelId);
                 UI.log(`Deactivated: ${model.name}`, 'info');
+            } else {
+                UI.log(`Can't deactivate your only model!`, 'info');
             }
         } else {
             // Activate if slot available
