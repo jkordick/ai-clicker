@@ -81,13 +81,15 @@ textarea {
 #game-container {
     position: relative;
     z-index: 1;
-    min-height: 100vh;
+    height: 100vh;
+    max-height: 100vh;
     display: flex;
     flex-direction: column;
     background:
         radial-gradient(circle at top left, rgba(57, 255, 20, 0.08), transparent 25%),
         radial-gradient(circle at top right, rgba(0, 255, 255, 0.08), transparent 22%),
         linear-gradient(180deg, #131313 0%, #090909 100%);
+    overflow: hidden;
 }
 
 #stats-bar,
@@ -502,6 +504,7 @@ textarea {
     display: flex;
     flex-direction: column;
     overflow: hidden;
+    min-height: 0;
     background:
         linear-gradient(180deg, rgba(255, 0, 255, 0.05), transparent 16%),
         linear-gradient(180deg, #181818 0%, #101010 100%);
@@ -573,6 +576,9 @@ textarea {
     display: flex;
     flex-direction: column;
     gap: 12px;
+    overflow-y: auto;
+    min-height: 0;
+    flex: 1;
 }
 
 .building-card,
