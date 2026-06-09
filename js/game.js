@@ -349,20 +349,23 @@ const Game = {
         if (!this.state.ownedModels.includes(modelId)) return;
 
         if (this.state.activeModels.includes(modelId)) {
-            // Deactivate (but must keep at least 1 active)
+            // Deactivate — only if more than 1 active
             if (this.state.activeModels.length > 1) {
                 this.state.activeModels = this.state.activeModels.filter(id => id !== modelId);
                 UI.log(`Deactivated: ${model.name}`, 'info');
             } else {
-                UI.log(`Can't deactivate your only model!`, 'info');
+                UI.log(`Can't deactivate your only model! Activate another to swap.`, 'info');
             }
         } else {
-            // Activate if slot available
+            // Activate — if slot available, just add. If full, swap out the oldest active.
             if (this.state.activeModels.length < this.getModelSlots()) {
                 this.state.activeModels.push(modelId);
                 UI.log(`Activated: ${model.name}!`, 'purchase');
             } else {
-                UI.log(`No free model slots! Deactivate one first.`, 'info');
+                const removed = this.state.activeModels.shift();
+                const removedModel = this.findModel(removed);
+                this.state.activeModels.push(modelId);
+                UI.log(`Swapped ${removedModel ? removedModel.name : 'model'} → ${model.name}`, 'purchase');
             }
         }
         this.renderShop();

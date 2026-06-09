@@ -194,7 +194,8 @@ const UI = {
                     actionText = '⏹ DEACTIVATE';
                     actionClass = 'active';
                 } else if (owned) {
-                    actionText = '▶ ACTIVATE';
+                    const slotsFull = state.activeModels.length >= Game.getModelSlots();
+                    actionText = slotsFull ? '🔄 SWAP IN' : '▶ ACTIVATE';
                     actionClass = 'owned';
                 } else {
                     actionText = `🧠 ${this.formatNumber(cost)}`;
