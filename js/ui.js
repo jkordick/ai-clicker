@@ -54,26 +54,58 @@ const UI = {
     // Update stats bar
     updateStats(tokens, tps, intelligence, iqps, drain) {
         this.elements.tokenCount.textContent = this.formatNumber(tokens);
-        this.elements.tps.textContent = this.formatTps(tps);
         this.elements.iqCount.textContent = this.formatNumber(intelligence);
-        this.elements.iqPerSec.textContent = this.formatTps(iqps);
-        this.elements.drainPerSec.textContent = this.formatTps(drain);
+
+        // Token detail: +earn / -drain
+        this.elements.tps.textContent = `+${this.formatTps(tps)}`;
+        this.elements.drainPerSec.textContent = `-${this.formatTps(drain)}`;
+
+        // IQ rate
+        this.elements.iqPerSec.textContent = `+${this.formatTps(iqps)}/s`;
 
         // Net token flow indicator
         const net = tps - drain;
         const netEl = document.getElementById('token-net');
         if (netEl) {
             if (net > 0) {
-                netEl.textContent = `+${this.formatTps(net)}/s`;
+                netEl.textContent = `net +${this.formatTps(net)}/s`;
                 netEl.className = 'stat-net positive';
             } else if (net < 0) {
-                netEl.textContent = `${this.formatTps(net)}/s`;
+                netEl.textContent = `net ${this.formatTps(net)}/s`;
                 netEl.className = 'stat-net negative';
             } else {
-                netEl.textContent = '±0/s';
+                netEl.textContent = 'net ±0/s';
                 netEl.className = 'stat-net zero';
             }
         }
+
+        // Active models bar
+        this.updateActiveModelsBar();
+    },
+
+    updateActiveModelsBar() {
+        const bar = document.getElementById('active-models-bar');
+        if (!bar) return;
+
+        const activeModels = Game.state.activeModels || [];
+        if (activeModels.length === 0) {
+            bar.innerHTML = '<span class="no-models">None</span>';
+            return;
+        }
+
+        const chips = activeModels.map(modelId => {
+            const model = Game.findModel(modelId);
+            if (!model) return '';
+            const drainVal = model.specialty.drainMult ? model.drain * model.specialty.drainMult : model.drain;
+            let iqVal = model.iqOutput;
+            if (model.specialty.iqMult) iqVal *= model.specialty.iqMult;
+            return `<div class="active-model-chip">
+                <span class="chip-name">${model.name}</span>
+                <span class="chip-stats"><span class="chip-drain">-${this.formatTps(drainVal)}</span> · <span class="chip-iq">+${this.formatTps(iqVal)}</span></span>
+            </div>`;
+        }).join('');
+
+        bar.innerHTML = chips;
     },
 
     // Render buildings list
