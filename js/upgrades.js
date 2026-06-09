@@ -149,4 +149,73 @@ const UPGRADES = [
         effect: { type: 'cost_reduce', value: 0.9 },
         requires: { building: 'gpu-cluster', count: 5 },
     },
+
+    // Model slot upgrades
+    {
+        id: 'parallel-inference',
+        name: 'Parallel Inference',
+        icon: '🔀',
+        description: 'Run models side by side. +1 model slot.',
+        cost: 25_000_000,
+        effect: { type: 'model_slot', value: 1 },
+        requires: { building: 'agent-fleet', count: 8 },
+    },
+    {
+        id: 'model-orchestration',
+        name: 'Model Orchestration',
+        icon: '🎼',
+        description: 'Conductor for your AI ensemble. +1 model slot.',
+        cost: 500_000_000,
+        effect: { type: 'model_slot', value: 1 },
+        requires: { building: 'gpu-cluster', count: 8 },
+    },
+
+    // Intelligence gain upgrades
+    {
+        id: 'knowledge-distillation',
+        name: 'Knowledge Distillation',
+        icon: '🧪',
+        description: 'Compress wisdom from large models. IQ gain +50%.',
+        cost: 500_000,
+        effect: { type: 'iq_multiply', value: 1.5 },
+        requires: { building: 'fine-tuned-model', count: 3 },
+    },
+    {
+        id: 'chain-of-thought-reasoning',
+        name: 'Chain-of-Thought',
+        icon: '💭',
+        description: 'Think step by step. IQ gain +75%.',
+        cost: 10_000_000,
+        effect: { type: 'iq_multiply', value: 1.75 },
+        requires: { building: 'chain-of-thought', count: 15 },
+    },
+    {
+        id: 'recursive-self-improvement',
+        name: 'Recursive Self-Improvement',
+        icon: '♾️',
+        description: 'AI improves its own training. IQ gain x2.',
+        cost: 200_000_000,
+        effect: { type: 'iq_multiply', value: 2 },
+        requires: { building: 'gpu-cluster', count: 10 },
+    },
+
+    // Drain reduction upgrades
+    {
+        id: 'quantization',
+        name: 'INT8 Quantization',
+        icon: '📦',
+        description: 'Smaller weights, same smarts. All drain -20%.',
+        cost: 1_000_000,
+        effect: { type: 'drain_reduce', value: 0.8 },
+        requires: { building: 'fine-tuned-model', count: 5 },
+    },
+    {
+        id: 'speculative-decoding',
+        name: 'Speculative Decoding',
+        icon: '🎯',
+        description: 'Guess tokens ahead of time. All drain -25%.',
+        cost: 50_000_000,
+        effect: { type: 'drain_reduce', value: 0.75 },
+        requires: { building: 'agent-fleet', count: 10 },
+    },
 ];

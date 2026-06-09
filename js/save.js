@@ -15,6 +15,8 @@ function getDefaultState() {
         globalMultiplier: 1,
         costMultiplier: 1,
         iqCostMultiplier: 1,
+        iqMultiplier: 1,
+        drainMultiplier: 1,
         modelSlots: 1,
         buildings: {},
         buildingMultipliers: {},

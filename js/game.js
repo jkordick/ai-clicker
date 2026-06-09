@@ -19,9 +19,14 @@ const Game = {
             if (!this.state.totalIntelligence) this.state.totalIntelligence = 0;
             if (!this.state.modelSlots) this.state.modelSlots = 1;
             if (!this.state.iqCostMultiplier) this.state.iqCostMultiplier = 1;
+            if (!this.state.iqMultiplier) this.state.iqMultiplier = 1;
+            if (!this.state.drainMultiplier) this.state.drainMultiplier = 1;
+
+            // Reapply upgrades to rebuild computed multipliers (including modelSlots)
+            this.reapplyUpgrades();
 
             // Fix: trim active models to slot limit
-            const maxSlots = this.state.modelSlots;
+            const maxSlots = this.getModelSlots();
             if (this.state.activeModels.length > maxSlots) {
                 this.state.activeModels = this.state.activeModels.slice(0, maxSlots);
             }
@@ -197,13 +202,12 @@ const Game = {
             const model = this.findModel(modelId);
             if (!model) continue;
             let drain = model.drain;
-            // Apply drain reduction specialties
             if (model.specialty.drainMult) {
                 drain *= model.specialty.drainMult;
             }
             totalDrain += drain;
         }
-        return totalDrain;
+        return totalDrain * (this.state.drainMultiplier || 1);
     },
 
     // Calculate total IQ output from all active models
@@ -213,17 +217,15 @@ const Game = {
             const model = this.findModel(modelId);
             if (!model) continue;
             let iq = model.iqOutput;
-            // Apply IQ multiplier specialties
             if (model.specialty.iqMult) {
                 iq *= model.specialty.iqMult;
             }
-            // Chaos models: 20% chance of burst each second (checked per tick)
             if (model.specialty.chaosMult && Math.random() < 0.02) {
                 iq *= model.specialty.chaosMult;
             }
             totalIq += iq;
         }
-        return totalIq;
+        return totalIq * (this.state.iqMultiplier || 1);
     },
 
     getModelSlots() {
@@ -405,6 +407,12 @@ const Game = {
             case 'model_slot':
                 this.state.modelSlots += effect.value;
                 break;
+            case 'iq_multiply':
+                this.state.iqMultiplier *= effect.value;
+                break;
+            case 'drain_reduce':
+                this.state.drainMultiplier *= effect.value;
+                break;
         }
     },
 
@@ -412,6 +420,9 @@ const Game = {
         this.state.clickMultiplier = 1;
         this.state.globalMultiplier = 1;
         this.state.costMultiplier = 1;
+        this.state.iqMultiplier = 1;
+        this.state.drainMultiplier = 1;
+        this.state.modelSlots = 1;
         this.state.buildingMultipliers = {};
 
         for (const upgradeId of this.state.upgrades) {
