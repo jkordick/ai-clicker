@@ -309,6 +309,36 @@ textarea {
     color: var(--magenta);
 }
 
+.active-model-chip[data-chip-tooltip] {
+    position: relative;
+    cursor: help;
+}
+
+.active-model-chip[data-chip-tooltip]::after {
+    content: attr(data-chip-tooltip);
+    position: absolute;
+    left: 50%;
+    top: calc(100% + 6px);
+    transform: translateX(-50%);
+    padding: 6px 10px;
+    background: #111111;
+    color: var(--yellow);
+    font-family: 'Silkscreen', monospace;
+    font-size: 0.55rem;
+    line-height: 1.5;
+    white-space: nowrap;
+    border: var(--pixel) solid var(--yellow);
+    box-shadow: 3px 3px 0 var(--shadow);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.12s steps(2);
+    z-index: 300;
+}
+
+.active-model-chip[data-chip-tooltip]:hover::after {
+    opacity: 1;
+}
+
 #main-area {
     flex: 1;
     display: grid;

@@ -99,7 +99,7 @@ const UI = {
             const drainVal = model.specialty.drainMult ? model.drain * model.specialty.drainMult : model.drain;
             let iqVal = model.iqOutput;
             if (model.specialty.iqMult) iqVal *= model.specialty.iqMult;
-            return `<div class="active-model-chip">
+            return `<div class="active-model-chip" data-chip-tooltip="${model.specialty.desc}">
                 <span class="chip-name">${model.name}</span>
                 <span class="chip-stats"><span class="chip-drain">-${this.formatTps(drainVal)}</span> · <span class="chip-iq">+${this.formatTps(iqVal)}</span></span>
             </div>`;
