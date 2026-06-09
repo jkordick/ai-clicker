@@ -88,6 +88,10 @@ const UI = {
         if (!bar) return;
 
         const activeModels = Game.state.activeModels || [];
+        const key = activeModels.join(',');
+        if (bar.dataset.lastKey === key) return;
+        bar.dataset.lastKey = key;
+
         if (activeModels.length === 0) {
             bar.innerHTML = '<span class="no-models">None</span>';
             return;
