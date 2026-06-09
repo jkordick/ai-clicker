@@ -88,6 +88,12 @@ const UI = {
         if (!bar) return;
 
         const activeModels = Game.state.activeModels || [];
+        const slots = Game.getModelSlots();
+
+        // Update slots badge
+        const slotsEl = document.getElementById('model-slots-display');
+        if (slotsEl) slotsEl.textContent = `${activeModels.length}/${slots}`;
+
         const key = activeModels.join(',');
         if (bar.dataset.lastKey === key) return;
         bar.dataset.lastKey = key;
@@ -160,10 +166,17 @@ const UI = {
     // Render upgrades list
     renderUpgrades(upgrades, state, onBuy) {
         const available = upgrades.filter(u => {
-            if (state.upgrades.includes(u.id)) return true; // Show purchased
+            if (state.upgrades.includes(u.id)) return true;
             if (!u.requires) return true;
             const owned = state.buildings[u.requires.building] || 0;
             return owned >= u.requires.count;
+        });
+
+        const locked = upgrades.filter(u => {
+            if (state.upgrades.includes(u.id)) return false;
+            if (!u.requires) return false;
+            const owned = state.buildings[u.requires.building] || 0;
+            return owned < u.requires.count;
         });
 
         const html = available.map(upgrade => {
@@ -184,15 +197,35 @@ const UI = {
             `;
         }).join('');
 
-        this.elements.upgradesList.innerHTML = html || '<div class="upgrade-card"><div class="upgrade-info"><div class="upgrade-desc">Keep building to unlock upgrades...</div></div></div>';
+        // Show preview of locked upgrades
+        const lockedHtml = locked.length > 0 ? `
+            <div class="upgrades-locked-header">🔒 ${locked.length} more upgrade${locked.length > 1 ? 's' : ''} to discover...</div>
+            ${locked.slice(0, 3).map(u => `
+                <div class="upgrade-card locked">
+                    <div class="upgrade-icon">❓</div>
+                    <div class="upgrade-info">
+                        <div class="upgrade-name">???</div>
+                        <div class="upgrade-desc">Requires: ${u.requires.count}x ${this.getBuildingName(u.requires.building)}</div>
+                    </div>
+                    <div class="upgrade-cost">🔒</div>
+                </div>
+            `).join('')}
+        ` : '';
+
+        this.elements.upgradesList.innerHTML = (html + lockedHtml) || '<div class="upgrade-card"><div class="upgrade-info"><div class="upgrade-desc">Keep building to unlock upgrades...</div></div></div>';
 
         // Attach click handlers
-        this.elements.upgradesList.querySelectorAll('.upgrade-card:not(.purchased)').forEach(card => {
+        this.elements.upgradesList.querySelectorAll('.upgrade-card:not(.purchased):not(.locked)').forEach(card => {
             card.addEventListener('click', () => {
                 const id = card.dataset.upgradeId;
                 onBuy(id);
             });
         });
+    },
+
+    getBuildingName(buildingId) {
+        const b = BUILDINGS.find(b => b.id === buildingId);
+        return b ? b.name : buildingId;
     },
 
     // Render models shop (buy with IQ, activate/deactivate)
@@ -201,12 +234,7 @@ const UI = {
         const activeCount = state.activeModels.length;
 
         // Info bar
-        this.elements.modelShopInfo.innerHTML = `
-            <div class="model-info-bar">
-                <span>🧠 Intelligence: <strong>${this.formatNumber(state.intelligence)}</strong></span>
-                <span>📦 Model Slots: <strong>${activeCount} / ${slots}</strong></span>
-            </div>
-        `;
+        this.elements.modelShopInfo.innerHTML = '';
 
         const html = companies.map(company => {
             const companyModels = company.models.map(model => {

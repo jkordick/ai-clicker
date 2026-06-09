@@ -768,6 +768,32 @@ textarea {
     box-shadow: var(--panel-border-green);
 }
 
+.upgrade-card.locked {
+    opacity: 0.4;
+    filter: grayscale(0.4);
+    cursor: default;
+    border-style: dashed;
+}
+
+.upgrade-card.locked:hover {
+    transform: none;
+    box-shadow: var(--panel-border);
+}
+
+.upgrades-locked-header {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 0.55rem;
+    color: var(--text-muted);
+    padding: 12px 8px 6px;
+    text-align: center;
+}
+
+.slots-badge {
+    color: var(--cyan);
+    font-size: 0.5rem;
+    margin-left: 4px;
+}
+
 .model-card.model-active {
     box-shadow:
         0 0 0 var(--pixel) var(--shadow),
