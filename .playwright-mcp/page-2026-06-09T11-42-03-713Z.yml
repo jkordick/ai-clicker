@@ -1,0 +1,91 @@
+- generic [ref=e2]:
+  - banner [ref=e3]:
+    - generic [ref=e4]:
+      - generic [ref=e5]: 🪙 Tokens
+      - generic [ref=e6]: "0"
+    - generic [ref=e7]:
+      - generic [ref=e8]: ⚡ per second
+      - generic [ref=e9]: "0.0"
+    - generic [ref=e10]:
+      - generic [ref=e11]: 🧠 Intelligence
+      - generic [ref=e12]: "0"
+    - generic [ref=e13]:
+      - generic [ref=e14]: 🧠 IQ/sec
+      - generic [ref=e15]: "0.0"
+    - generic [ref=e16]:
+      - generic [ref=e17]: 🔥 Drain/sec
+      - generic [ref=e18]: "0.0"
+  - main [ref=e19]:
+    - generic [ref=e20] [cursor=pointer]:
+      - button "🧠 Generate Tokens" [ref=e22]:
+        - generic [ref=e23]: 🧠
+        - generic [ref=e24]: Generate Tokens
+      - generic [ref=e26]: Welcome to Token Clicker! Click the brain to start generating tokens.
+    - generic [ref=e28]:
+      - button "🛠️ Tech Stack" [ref=e29] [cursor=pointer]
+      - button "⬆️ Upgrades" [ref=e30] [cursor=pointer]
+      - button "🤖 Models" [ref=e31] [cursor=pointer]
+  - contentinfo [ref=e34]:
+    - button "💾 Save" [ref=e35] [cursor=pointer]
+    - button "🗑️ Reset" [ref=e36] [cursor=pointer]
+    - generic [ref=e37]: Auto-saves every 30s
+  - generic [ref=e39]:
+    - heading "🤖 Choose Your Starting Model" [level=2] [ref=e40]
+    - paragraph [ref=e41]: "Every AI empire starts somewhere. Pick your first model:"
+    - generic [ref=e42]:
+      - generic [ref=e43] [cursor=pointer]:
+        - generic [ref=e44]: Philanthropic
+        - generic [ref=e45]: Clyde 3 Haiku
+        - generic [ref=e46]: Small, fast, writes poetry about safety
+        - generic [ref=e47]:
+          - text: "Drain: 1/s → IQ: 0.5/s"
+          - text: "-20% token drain"
+      - generic [ref=e48] [cursor=pointer]:
+        - generic [ref=e49]: OpenBrain
+        - generic [ref=e50]: BPT-3.5 Turbo
+        - generic [ref=e51]: Everyone's first model. Still works!
+        - generic [ref=e52]:
+          - text: "Drain: 2/s → IQ: 1.2/s"
+          - text: +20% TPS
+      - generic [ref=e53] [cursor=pointer]:
+        - generic [ref=e54]: Noodle
+        - generic [ref=e55]: Gemstone 1.5 Flash
+        - generic [ref=e56]: Fast as lightning, depth of a puddle
+        - generic [ref=e57]:
+          - text: "Drain: 3/s → IQ: 1/s"
+          - text: +40% TPS
+      - generic [ref=e58] [cursor=pointer]:
+        - generic [ref=e59]: Macrohard
+        - generic [ref=e60]: Co-Parrot 1.0
+        - generic [ref=e61]: Autocomplete became sentient
+        - generic [ref=e62]:
+          - text: "Drain: 2/s → IQ: 0.8/s"
+          - text: +50% click power
+      - generic [ref=e63] [cursor=pointer]:
+        - generic [ref=e64]: Zeta
+        - generic [ref=e65]: Llamba 2 7B
+        - generic [ref=e66]: Small, free, community-loved
+        - generic [ref=e67]:
+          - text: "Drain: 1/s → IQ: 0.4/s"
+          - text: "-30% drain, free"
+      - generic [ref=e68] [cursor=pointer]:
+        - generic [ref=e69]: yAI
+        - generic [ref=e70]: Gronk 1
+        - generic [ref=e71]: Unfiltered. Unhinged. Unpredictable.
+        - generic [ref=e72]:
+          - text: "Drain: 4/s → IQ: 2/s"
+          - text: Random 2× IQ bursts
+      - generic [ref=e73] [cursor=pointer]:
+        - generic [ref=e74]: Sirocco
+        - generic [ref=e75]: Croissant 7B
+        - generic [ref=e76]: Tiny, European, punches above its weight
+        - generic [ref=e77]:
+          - text: "Drain: 1.5/s → IQ: 0.9/s"
+          - text: Best tier-1 efficiency
+      - generic [ref=e78] [cursor=pointer]:
+        - generic [ref=e79]: DeepDive
+        - generic [ref=e80]: Abyssal V2
+        - generic [ref=e81]: Costs nothing. Surprisingly decent.
+        - generic [ref=e82]:
+          - text: "Drain: 1/s → IQ: 0.6/s"
+          - text: "-25% all costs"

@@ -18,9 +18,17 @@
                 <span class="stat-label">⚡ per second</span>
                 <span id="tps" class="stat-value">0.0</span>
             </div>
+            <div class="stat stat-intelligence">
+                <span class="stat-label">🧠 Intelligence</span>
+                <span id="iq-count" class="stat-value iq">0</span>
+            </div>
             <div class="stat">
-                <span class="stat-label">🖱️ per click</span>
-                <span id="click-power" class="stat-value">1</span>
+                <span class="stat-label">🧠 IQ/sec</span>
+                <span id="iq-per-sec" class="stat-value iq">0.0</span>
+            </div>
+            <div class="stat">
+                <span class="stat-label">🔥 Drain/sec</span>
+                <span id="drain-per-sec" class="stat-value drain">0.0</span>
             </div>
         </header>
 
@@ -44,7 +52,7 @@
             <!-- Right: Shop -->
             <section id="shop">
                 <div class="shop-tabs">
-                    <button class="tab active" data-tab="buildings">🏗️ Buildings</button>
+                    <button class="tab active" data-tab="buildings">🛠️ Tech Stack</button>
                     <button class="tab" data-tab="upgrades">⬆️ Upgrades</button>
                     <button class="tab" data-tab="models">🤖 Models</button>
                 </div>
@@ -58,6 +66,7 @@
                 </div>
 
                 <div id="tab-models" class="tab-content">
+                    <div id="model-shop-info"></div>
                     <div id="models-list"></div>
                 </div>
             </section>
@@ -69,6 +78,14 @@
             <button id="reset-btn" class="footer-btn danger">🗑️ Reset</button>
             <span id="last-save">Auto-saves every 30s</span>
         </footer>
+        <!-- Model Selection Dialog -->
+        <div id="model-select-overlay" class="modal-overlay hidden">
+            <div class="modal">
+                <h2 class="modal-title">🤖 Choose Your Starting Model</h2>
+                <p class="modal-subtitle">Every AI empire starts somewhere. Pick your first model:</p>
+                <div id="model-select-grid"></div>
+            </div>
+        </div>
     </div>
 
     <script src="js/buildings.js"></script>

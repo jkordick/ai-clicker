@@ -1,0 +1,6 @@
+[  465141ms] TypeError: Cannot set properties of null (setting 'textContent')
+    at Object.updateStats (http://localhost:3000/js/ui.js:54:46)
+    at Object.renderStats (http://localhost:3000/js/game.js:198:12)
+    at Object.startGame (http://localhost:3000/js/game.js:105:14)
+    at Object.init (http://localhost:3000/js/game.js:39:18)
+    at HTMLDocument.<anonymous> (http://localhost:3000/js/game.js:290:10)

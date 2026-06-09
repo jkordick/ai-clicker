@@ -6,12 +6,15 @@ const UI = {
         this.elements = {
             tokenCount: document.getElementById('token-count'),
             tps: document.getElementById('tps'),
-            clickPower: document.getElementById('click-power'),
+            iqCount: document.getElementById('iq-count'),
+            iqPerSec: document.getElementById('iq-per-sec'),
+            drainPerSec: document.getElementById('drain-per-sec'),
             clickButton: document.getElementById('click-button'),
             clickParticles: document.getElementById('click-particles'),
             buildingsList: document.getElementById('buildings-list'),
             upgradesList: document.getElementById('upgrades-list'),
             modelsList: document.getElementById('models-list'),
+            modelShopInfo: document.getElementById('model-shop-info'),
             eventLog: document.getElementById('event-log'),
             saveBtn: document.getElementById('save-btn'),
             resetBtn: document.getElementById('reset-btn'),
@@ -49,10 +52,12 @@ const UI = {
     },
 
     // Update stats bar
-    updateStats(tokens, tps, clickPower) {
+    updateStats(tokens, tps, intelligence, iqps, drain) {
         this.elements.tokenCount.textContent = this.formatNumber(tokens);
         this.elements.tps.textContent = this.formatTps(tps);
-        this.elements.clickPower.textContent = this.formatNumber(clickPower);
+        this.elements.iqCount.textContent = this.formatNumber(intelligence);
+        this.elements.iqPerSec.textContent = this.formatTps(iqps);
+        this.elements.drainPerSec.textContent = this.formatTps(drain);
     },
 
     // Render buildings list
@@ -138,27 +143,95 @@ const UI = {
         });
     },
 
-    // Render models/companies list
-    renderModels(companies, state) {
+    // Render models shop (buy with IQ, activate/deactivate)
+    renderModels(companies, state, onBuy, onActivate) {
+        const slots = Game.getModelSlots();
+        const activeCount = state.activeModels.length;
+
+        // Info bar
+        this.elements.modelShopInfo.innerHTML = `
+            <div class="model-info-bar">
+                <span>🧠 Intelligence: <strong>${this.formatNumber(state.intelligence)}</strong></span>
+                <span>📦 Model Slots: <strong>${activeCount} / ${slots}</strong></span>
+            </div>
+        `;
+
         const html = companies.map(company => {
             const companyModels = company.models.map(model => {
-                const owned = state.activeModels.includes(model.id);
+                const owned = state.ownedModels.includes(model.id);
+                const active = state.activeModels.includes(model.id);
+                let cost = MODEL_TIER_COSTS[model.tier] || 0;
+
+                // Apply IQ cost reductions
+                for (const ownedId of state.activeModels) {
+                    const m = Game.findModel(ownedId);
+                    if (m && m.specialty.iqCostMult) {
+                        cost *= m.specialty.iqCostMult;
+                    }
+                }
+                cost = Math.floor(cost * (state.iqCostMultiplier || 1));
+
+                const canAfford = state.intelligence >= cost;
+                let cssClass = owned ? (active ? 'model-active' : 'model-owned') : (!canAfford ? 'cant-afford' : '');
+                let actionText = owned ? (active ? '✓ ACTIVE' : 'ACTIVATE') : `🧠 ${this.formatNumber(cost)}`;
+
                 return `
-                    <div class="model-card" style="border-left: 3px solid ${company.color}">
-                        <div class="model-company">${company.name}</div>
-                        <div class="model-name">${model.name} ${owned ? '✓' : ''}</div>
+                    <div class="model-card ${cssClass}" data-model-id="${model.id}" style="border-left: 3px solid ${company.color}">
+                        <div class="model-company" style="color: ${company.color}">${company.name}</div>
+                        <div class="model-name">${model.name}</div>
                         <div class="building-desc">${model.flavor}</div>
                         <div class="model-stats">
                             <span>Tier ${model.tier}</span>
-                            <span>${model.bonus.type}: x${model.bonus.value}</span>
+                            <span>Drain: ${model.drain}/s</span>
+                            <span>IQ: ${model.iqOutput}/s</span>
                         </div>
+                        <div class="model-specialty">${model.specialty.desc}</div>
+                        <div class="model-action ${owned ? 'owned' : ''}">${actionText}</div>
                     </div>
                 `;
             }).join('');
             return companyModels;
         }).join('');
 
-        this.elements.modelsList.innerHTML = html || '<div class="model-card">Coming soon...</div>';
+        this.elements.modelsList.innerHTML = html;
+
+        // Attach handlers
+        this.elements.modelsList.querySelectorAll('.model-card').forEach(card => {
+            card.addEventListener('click', () => {
+                const id = card.dataset.modelId;
+                if (state.ownedModels.includes(id)) {
+                    onActivate(id);
+                } else {
+                    onBuy(id);
+                }
+            });
+        });
+    },
+
+    // Pop a "+N" randomly around the click button
+    spawnFlyingToken(amount, clientX, clientY) {
+        const counterEl = this.elements.tokenCount;
+        const btnWrapper = document.getElementById('click-button-wrapper');
+
+        const pop = document.createElement('div');
+        pop.className = 'counter-pop';
+        if (amount > 100) pop.classList.add('crit');
+        pop.textContent = `+${this.formatNumber(amount)}`;
+
+        // Random offset around center of the button
+        const offsetX = (Math.random() - 0.5) * 80;
+        const offsetY = (Math.random() - 0.5) * 60;
+        pop.style.left = `calc(50% + ${offsetX}px)`;
+        pop.style.top = `calc(50% + ${offsetY}px)`;
+
+        btnWrapper.appendChild(pop);
+
+        // Bump the counter
+        counterEl.classList.remove('bump');
+        void counterEl.offsetWidth;
+        counterEl.classList.add('bump');
+
+        setTimeout(() => pop.remove(), 850);
     },
 
     // Spawn click particle + sparks
