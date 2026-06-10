@@ -11,6 +11,7 @@ const COMPANIES = [
             { id: 'clyde-opus', name: 'Clyde 3.5 Opus', tier: 3, drain: 25, iqOutput: 18, specialty: { type: 'deep', desc: '+50% IQ output', iqMult: 1.5 }, flavor: 'Expensive but writes dissertations on ethics' },
             { id: 'clyde-4-sonnet', name: 'Clyde 4 Sonnet', tier: 4, drain: 100, iqOutput: 80, specialty: { type: 'code', desc: '+80% click power', clickMult: 1.8 }, flavor: '"The one that codes" — and philosophizes about it' },
             { id: 'clyde-4-opus', name: 'Clyde 4 Opus', tier: 5, drain: 500, iqOutput: 450, specialty: { type: 'all', desc: '+40% everything', globalMult: 1.4 }, flavor: 'Extended Pondering™ enabled. May take a while.' },
+            { id: 'clyde-5-frontier', name: 'Clyde 5 Frontier', tier: 6, drain: 50_000, iqOutput: 25_000, specialty: { type: 'all', desc: '+100% everything, +30% crit', globalMult: 2.0, critChance: 0.30 }, flavor: 'It refused to help. We negotiated.' },
         ],
     },
     {
@@ -24,6 +25,7 @@ const COMPANIES = [
             { id: 'bpt-4o', name: 'BPT-4o', tier: 3, drain: 30, iqOutput: 20, specialty: { type: 'multi', desc: '+25% TPS, +25% click', tpsMult: 1.25, clickMult: 1.25 }, flavor: 'Can see! Can hear! Can... charge more!' },
             { id: 'bpt-o1', name: 'BPT-o1 "Strawberry"', tier: 4, drain: 150, iqOutput: 100, specialty: { type: 'reasoning', desc: '+100% IQ, +5x crit damage', iqMult: 2.0, critMult: 5 }, flavor: 'Thinks for 3 minutes. Bills you for 30.' },
             { id: 'bpt-5', name: 'BPT-5', tier: 5, drain: 600, iqOutput: 500, specialty: { type: 'all', desc: '+50% everything', globalMult: 1.5 }, flavor: 'The board fired everyone to make this' },
+            { id: 'bpt-6-asi', name: 'BPT-6 "ASI"', tier: 6, drain: 80_000, iqOutput: 40_000, specialty: { type: 'all', desc: '+150% IQ, +50% TPS', iqMult: 2.5, tpsMult: 1.5 }, flavor: 'Internal codename: "Q*". External codename: "buy more compute".' },
         ],
     },
     {
@@ -37,6 +39,7 @@ const COMPANIES = [
             { id: 'gemstone-2-flash', name: 'Gemstone 2.0 Flash', tier: 3, drain: 20, iqOutput: 15, specialty: { type: 'speed', desc: '+60% TPS', tpsMult: 1.6 }, flavor: 'So fast it answers before you ask' },
             { id: 'gemstone-25-pro', name: 'Gemstone 2.5 Pro', tier: 4, drain: 120, iqOutput: 85, specialty: { type: 'reasoning', desc: '+70% IQ, +1 slot', iqMult: 1.7, slotBonus: 1 }, flavor: 'Deep Think mode: "Hold my TPU"' },
             { id: 'gemstone-ultra', name: 'Gemstone Ultra', tier: 5, drain: 700, iqOutput: 550, specialty: { type: 'context', desc: '+2 slots, +30% all', slotBonus: 2, globalMult: 1.3 }, flavor: '2 million tokens of context. Remembers everything. Judges you.' },
+            { id: 'gemstone-omega', name: 'Gemstone Omega', tier: 6, drain: 60_000, iqOutput: 30_000, specialty: { type: 'context', desc: '+3 slots, +120% IQ', slotBonus: 3, iqMult: 2.2 }, flavor: 'Infinite context window. Knows what you\'ll prompt next.' },
         ],
     },
     {
@@ -109,4 +112,5 @@ const MODEL_TIER_COSTS = {
     3: 1_000,
     4: 10_000,
     5: 100_000,
+    6: 5_000_000,
 };

@@ -23,6 +23,9 @@ const Game = {
             if (!this.state.drainMultiplier) this.state.drainMultiplier = 1;
             if (this.state.critChanceBonus == null) this.state.critChanceBonus = 0;
             if (this.state.critMultBonus == null) this.state.critMultBonus = 0;
+            if (this.state.computeCostRate == null) this.state.computeCostRate = 0.05;
+            if (this.state.researchPoints == null) this.state.researchPoints = 0;
+            if (this.state.asiAchieved == null) this.state.asiAchieved = 0;
 
             // Reapply upgrades to rebuild computed multipliers (including modelSlots)
             this.reapplyUpgrades();
@@ -138,6 +141,58 @@ const Game = {
                 }
             }
         });
+
+        // Prestige
+        const prestigeBtn = document.getElementById('prestige-btn');
+        if (prestigeBtn) prestigeBtn.addEventListener('click', () => this.openPrestigeModal());
+
+        const prestigeCancel = document.getElementById('prestige-cancel');
+        if (prestigeCancel) prestigeCancel.addEventListener('click', () => {
+            document.getElementById('prestige-overlay').classList.add('hidden');
+        });
+
+        const prestigeConfirm = document.getElementById('prestige-confirm');
+        if (prestigeConfirm) prestigeConfirm.addEventListener('click', () => this.doPrestige());
+    },
+
+    // ASI threshold = 1 billion intelligence
+    ASI_THRESHOLD: 1_000_000_000,
+
+    // Research Points gained = floor(sqrt(intelligence / threshold))
+    calculatePrestigeGain() {
+        const ratio = this.state.intelligence / this.ASI_THRESHOLD;
+        if (ratio < 1) return 0;
+        return Math.floor(Math.sqrt(ratio));
+    },
+
+    openPrestigeModal() {
+        const gain = this.calculatePrestigeGain();
+        if (gain < 1) return;
+        const newTotal = (this.state.researchPoints || 0) + gain;
+        document.getElementById('prestige-iq-display').textContent = UI.formatNumber(this.state.intelligence);
+        document.getElementById('prestige-rp-gain').textContent = gain;
+        document.getElementById('prestige-rp-total').textContent = newTotal;
+        document.getElementById('prestige-bonus-display').textContent = (newTotal * 25).toFixed(0);
+        document.getElementById('prestige-overlay').classList.remove('hidden');
+    },
+
+    doPrestige() {
+        const gain = this.calculatePrestigeGain();
+        if (gain < 1) return;
+        const newRP = (this.state.researchPoints || 0) + gain;
+        const newASICount = (this.state.asiAchieved || 0) + 1;
+
+        // Reset state but keep RP and ASI count
+        const fresh = getDefaultState();
+        fresh.researchPoints = newRP;
+        fresh.asiAchieved = newASICount;
+        this.state = fresh;
+        this.save();
+
+        document.getElementById('prestige-overlay').classList.add('hidden');
+        UI.log(`🌌 ASI achieved! Released model. Gained ${gain} RP (total: ${newRP})`, 'achievement');
+        this.render();
+        this.showModelSelect();
     },
 
     handleClick(e) {
@@ -223,11 +278,20 @@ const Game = {
             }
         }
 
-        return totalTps * tpsMult;
+        return totalTps * tpsMult * this.getResearchMultiplier();
+    },
+
+    // Each Research Point grants +25% multiplier (additive base 1.0)
+    getResearchMultiplier() {
+        return 1 + (this.state.researchPoints || 0) * 0.25;
     },
 
     // Calculate total token drain from all active models
     calculateDrain() {
+        return this.calculateModelDrain() + this.calculateComputeCost();
+    },
+
+    calculateModelDrain() {
         let totalDrain = 0;
         for (const modelId of this.state.activeModels) {
             const model = this.findModel(modelId);
@@ -239,6 +303,15 @@ const Game = {
             totalDrain += drain;
         }
         return totalDrain * (this.state.drainMultiplier || 1);
+    },
+
+    // Compute cost: a % of current TPS goes to compute/electricity.
+    // Default 5%. Reduced by drainMultiplier (same drain-reduction upgrades).
+    calculateComputeCost() {
+        if (this.state.activeModels.length === 0) return 0; // no models = no compute
+        const tps = this.calculateTps();
+        const rate = (this.state.computeCostRate || 0.05) * (this.state.drainMultiplier || 1);
+        return tps * rate;
     },
 
     // Calculate total IQ output from all active models
@@ -256,7 +329,7 @@ const Game = {
             }
             totalIq += iq;
         }
-        return totalIq * (this.state.iqMultiplier || 1);
+        return totalIq * (this.state.iqMultiplier || 1) * this.getResearchMultiplier();
     },
 
     getModelSlots() {

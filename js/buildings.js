@@ -51,7 +51,7 @@ const BUILDINGS = [
         id: 'reasoning-model',
         name: 'Reasoning Model',
         icon: '🍓',
-        description: '"Thinking... still thinking... billable thinking..."',
+        description: '"Thinking... still thinking... it clearly has 2 rs, no doubt."',
         baseCost: 500_000,
         baseTps: 1_200,
         costMultiplier: 1.15,

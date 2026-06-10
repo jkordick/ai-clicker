@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>🪙 Token Clicker — Build Your AI Empire</title>
-    <link rel="stylesheet" href="css/style.css?v=3">
+    <link rel="stylesheet" href="css/style.css?v=4">
 </head>
 <body>
     <div id="game-container">
@@ -34,6 +34,19 @@
                 </div>
             </div>
         </header>
+
+        <!-- ASI Progress Bar -->
+        <div id="asi-progress-container" data-tooltip="Reach 1 billion Intelligence to achieve ASI and unlock prestige.">
+            <div class="asi-label">
+                <span>🌌 PATH TO ASI</span>
+                <span id="asi-rp-display" class="asi-rp" style="display:none">⚡ <span id="rp-count">0</span> RP</span>
+            </div>
+            <div class="asi-bar">
+                <div id="asi-bar-fill" class="asi-bar-fill"></div>
+                <span id="asi-bar-text" class="asi-bar-text">0 / 1B IQ</span>
+            </div>
+            <button id="prestige-btn" class="prestige-btn" style="display:none">⚡ ACHIEVE ASI & PRESTIGE</button>
+        </div>
 
         <main id="main-area">
             <!-- Left: Click Zone -->
@@ -88,6 +101,35 @@
                 <h2 class="modal-title">🤖 Choose Your Starting Model</h2>
                 <p class="modal-subtitle">Every AI empire starts somewhere. Pick your first model:</p>
                 <div id="model-select-grid"></div>
+            </div>
+        </div>
+
+        <div id="prestige-overlay" class="modal-overlay hidden">
+            <div class="modal prestige-modal">
+                <h2 class="modal-title">🌌 ACHIEVE ASI</h2>
+                <p class="modal-subtitle">You've reached <strong id="prestige-iq-display">1B</strong> Intelligence. Release your model to the world.</p>
+                <div class="prestige-info">
+                    <div class="prestige-row">
+                        <span>Research Points to gain:</span>
+                        <strong class="rp-gain">+<span id="prestige-rp-gain">0</span> RP</strong>
+                    </div>
+                    <div class="prestige-row">
+                        <span>Total after prestige:</span>
+                        <strong><span id="prestige-rp-total">0</span> RP</strong>
+                    </div>
+                    <div class="prestige-row">
+                        <span>Permanent bonus:</span>
+                        <strong class="rp-bonus">+<span id="prestige-bonus-display">0</span>% TPS & IQ</strong>
+                    </div>
+                </div>
+                <div class="prestige-warning">
+                    ⚠️ This will reset: tokens, buildings, upgrades, models, intelligence.<br/>
+                    You keep: Research Points and the bonus they grant.
+                </div>
+                <div class="prestige-actions">
+                    <button id="prestige-cancel" class="footer-btn">CANCEL</button>
+                    <button id="prestige-confirm" class="prestige-btn">⚡ RELEASE MODEL</button>
+                </div>
             </div>
         </div>
     </div>

@@ -135,6 +135,41 @@ const UI = {
 
         // Active models bar
         this.updateActiveModelsBar();
+
+        // ASI progress + prestige availability
+        this.updateAsiProgress();
+    },
+
+    updateAsiProgress() {
+        const fillEl = document.getElementById('asi-bar-fill');
+        const textEl = document.getElementById('asi-bar-text');
+        const btnEl = document.getElementById('prestige-btn');
+        const rpDisp = document.getElementById('asi-rp-display');
+        const rpCount = document.getElementById('rp-count');
+        if (!fillEl) return;
+
+        const intel = Game.state.intelligence;
+        const threshold = Game.ASI_THRESHOLD;
+        const pct = Math.min(intel / threshold, 1) * 100;
+
+        fillEl.style.width = `${pct}%`;
+        textEl.textContent = `${this.formatNumber(intel)} / ${this.formatNumber(threshold)} IQ`;
+
+        const canPrestige = intel >= threshold;
+        btnEl.style.display = canPrestige ? 'block' : 'none';
+        if (canPrestige) {
+            const gain = Game.calculatePrestigeGain();
+            btnEl.textContent = `⚡ ACHIEVE ASI & PRESTIGE (+${gain} RP)`;
+        }
+
+        // Show RP badge if any
+        const rp = Game.state.researchPoints || 0;
+        if (rp > 0) {
+            rpDisp.style.display = '';
+            rpCount.textContent = rp;
+        } else {
+            rpDisp.style.display = 'none';
+        }
     },
 
     updateActiveModelsBar() {
