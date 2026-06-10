@@ -156,6 +156,28 @@ textarea {
     min-width: 180px;
 }
 
+/* Fixed sizing for token & IQ cards so growing numbers / appearing
+   warnings don't push the header layout around. */
+.stat-group-tokens,
+.stat-group-iq {
+    width: 240px;
+    min-width: 240px;
+    min-height: 96px;
+    justify-content: flex-start;
+}
+
+.stat-group-tokens .stat-value,
+.stat-group-iq .stat-value {
+    min-height: 1.6em;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+}
+
 .stat-group-label {
     color: var(--yellow);
     font-family: 'Press Start 2P', monospace;
@@ -230,6 +252,13 @@ textarea {
     letter-spacing: 0.5px;
     animation: warn-flash 1s infinite alternate;
     user-select: none;
+    /* Reserve fixed slot so toggling visibility doesn't reflow the card */
+    position: absolute;
+    bottom: -10px;
+    left: 50%;
+    transform: translateX(-50%);
+    white-space: nowrap;
+    z-index: 2;
 }
 
 @keyframes warn-flash {
