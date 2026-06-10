@@ -21,6 +21,8 @@ const Game = {
             if (!this.state.iqCostMultiplier) this.state.iqCostMultiplier = 1;
             if (!this.state.iqMultiplier) this.state.iqMultiplier = 1;
             if (!this.state.drainMultiplier) this.state.drainMultiplier = 1;
+            if (this.state.critChanceBonus == null) this.state.critChanceBonus = 0;
+            if (this.state.critMultBonus == null) this.state.critMultBonus = 0;
 
             // Reapply upgrades to rebuild computed multipliers (including modelSlots)
             this.reapplyUpgrades();
@@ -139,7 +141,15 @@ const Game = {
     },
 
     handleClick(e) {
-        const power = this.getClickPower();
+        let power = this.getClickPower();
+
+        // Crit roll
+        const critChance = this.getCritChance();
+        const isCrit = Math.random() < critChance;
+        if (isCrit) {
+            power = Math.floor(power * this.getCritMultiplier());
+        }
+
         this.state.tokens += power;
         this.state.totalTokens += power;
         this.state.totalClicks++;
@@ -147,8 +157,32 @@ const Game = {
         const containerRect = UI.elements.clickParticles.getBoundingClientRect();
         const x = e.clientX - containerRect.left;
         const y = e.clientY - containerRect.top;
-        UI.spawnParticle(power, x, y);
-        UI.spawnFlyingToken(power, e.clientX, e.clientY);
+        UI.spawnParticle(power, x, y, isCrit);
+        UI.spawnFlyingToken(power, e.clientX, e.clientY, isCrit);
+    },
+
+    // Base 5% crit chance, additive from upgrades + active model specialties
+    getCritChance() {
+        let chance = 0.05 + (this.state.critChanceBonus || 0);
+        for (const modelId of this.state.activeModels) {
+            const model = this.findModel(modelId);
+            if (model && model.specialty.critChance) {
+                chance += model.specialty.critChance;
+            }
+        }
+        return Math.min(chance, 1);
+    },
+
+    // Base 3x crit multiplier, additive from upgrades + model specialties
+    getCritMultiplier() {
+        let mult = 3 + (this.state.critMultBonus || 0);
+        for (const modelId of this.state.activeModels) {
+            const model = this.findModel(modelId);
+            if (model && model.specialty.critMult) {
+                mult += model.specialty.critMult;
+            }
+        }
+        return mult;
     },
 
     getClickPower() {
@@ -450,6 +484,12 @@ const Game = {
             case 'drain_reduce':
                 this.state.drainMultiplier *= effect.value;
                 break;
+            case 'crit_chance':
+                this.state.critChanceBonus += effect.value;
+                break;
+            case 'crit_mult':
+                this.state.critMultBonus += effect.value;
+                break;
         }
     },
 
@@ -460,6 +500,8 @@ const Game = {
         this.state.iqMultiplier = 1;
         this.state.drainMultiplier = 1;
         this.state.modelSlots = 1;
+        this.state.critChanceBonus = 0;
+        this.state.critMultBonus = 0;
         this.state.buildingMultipliers = {};
 
         for (const upgradeId of this.state.upgrades) {

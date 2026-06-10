@@ -17,6 +17,8 @@ function getDefaultState() {
         iqCostMultiplier: 1,
         iqMultiplier: 1,
         drainMultiplier: 1,
+        critChanceBonus: 0,
+        critMultBonus: 0,
         modelSlots: 1,
         buildings: {},
         buildingMultipliers: {},

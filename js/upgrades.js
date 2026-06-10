@@ -218,4 +218,42 @@ const UPGRADES = [
         effect: { type: 'drain_reduce', value: 0.75 },
         requires: { building: 'agent-fleet', count: 10 },
     },
+
+    // Crit upgrades
+    {
+        id: 'beam-search',
+        name: 'Beam Search',
+        icon: '🔦',
+        description: 'Explore multiple paths. +10% crit chance on clicks.',
+        cost: 100_000,
+        effect: { type: 'crit_chance', value: 0.10 },
+        requires: { building: 'chain-of-thought', count: 3 },
+    },
+    {
+        id: 'top-k-sampling',
+        name: 'Top-K Sampling',
+        icon: '🎲',
+        description: 'Pick from the best. Crits deal +2x damage.',
+        cost: 2_000_000,
+        effect: { type: 'crit_mult', value: 2 },
+        requires: { building: 'fine-tuned-model', count: 3 },
+    },
+    {
+        id: 'mixture-of-experts',
+        name: 'Mixture of Experts',
+        icon: '🎓',
+        description: 'Route to specialists. +15% crit chance, +3x crit damage.',
+        cost: 100_000_000,
+        effect: { type: 'crit_chance', value: 0.15 },
+        requires: { building: 'agent-fleet', count: 5 },
+    },
+    {
+        id: 'mixture-of-experts-mult',
+        name: 'MoE Routing v2',
+        icon: '🎯',
+        description: 'Optimized expert routing. +3x crit damage.',
+        cost: 100_000_000,
+        effect: { type: 'crit_mult', value: 3 },
+        requires: { building: 'agent-fleet', count: 5 },
+    },
 ];

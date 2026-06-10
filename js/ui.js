@@ -28,6 +28,7 @@ const UI = {
 
     TIPS: [
         '⚡ Hold SHIFT and click a Tech Stack item to buy 10x at once.',
+        '💥 5% of your clicks crit for 3x tokens! Boost it with Beam Search and Strawberry.',
         '🤖 Hover over an active model in the top bar to see its specialty perk.',
         '🔄 Slots full? Clicking ACTIVATE on a new model SWAPS it in for the first active one.',
         '💧 If drain exceeds earnings, your tokens deplete and IQ production slows to a crawl.',
@@ -370,14 +371,14 @@ const UI = {
     },
 
     // Pop a "+N" randomly around the click button
-    spawnFlyingToken(amount, clientX, clientY) {
+    spawnFlyingToken(amount, clientX, clientY, isCrit = false) {
         const counterEl = this.elements.tokenCount;
         const btnWrapper = document.getElementById('click-button-wrapper');
 
         const pop = document.createElement('div');
         pop.className = 'counter-pop';
-        if (amount > 100) pop.classList.add('crit');
-        pop.textContent = `+${this.formatNumber(amount)}`;
+        if (isCrit) pop.classList.add('crit');
+        pop.textContent = isCrit ? `CRIT! +${this.formatNumber(amount)}` : `+${this.formatNumber(amount)}`;
 
         // Random offset around center of the button
         const offsetX = (Math.random() - 0.5) * 80;
@@ -396,11 +397,11 @@ const UI = {
     },
 
     // Spawn click particle + sparks
-    spawnParticle(amount, x, y) {
+    spawnParticle(amount, x, y, isCrit = false) {
         // Main number particle
         const particle = document.createElement('div');
         particle.className = 'particle';
-        if (amount > 100) particle.classList.add('crit');
+        if (isCrit) particle.classList.add('crit');
         particle.textContent = `+${this.formatNumber(amount)}`;
         particle.style.left = `${x + (Math.random() - 0.5) * 40}px`;
         particle.style.top = `${y - 20}px`;

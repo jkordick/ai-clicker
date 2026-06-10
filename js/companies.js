@@ -22,7 +22,7 @@ const COMPANIES = [
             { id: 'bpt-35-turbo', name: 'BPT-3.5 Turbo', tier: 1, drain: 2, iqOutput: 0.3, specialty: { type: 'speed', desc: '+20% TPS', tpsMult: 1.2 }, flavor: 'Everyone\'s first model. Still works!' },
             { id: 'bpt-4', name: 'BPT-4', tier: 2, drain: 8, iqOutput: 2.5, specialty: { type: 'quality', desc: '+40% IQ output', iqMult: 1.4 }, flavor: 'The one that started it all (again)' },
             { id: 'bpt-4o', name: 'BPT-4o', tier: 3, drain: 30, iqOutput: 20, specialty: { type: 'multi', desc: '+25% TPS, +25% click', tpsMult: 1.25, clickMult: 1.25 }, flavor: 'Can see! Can hear! Can... charge more!' },
-            { id: 'bpt-o1', name: 'BPT-o1 "Strawberry"', tier: 4, drain: 150, iqOutput: 100, specialty: { type: 'reasoning', desc: '+100% IQ output', iqMult: 2.0 }, flavor: 'Thinks for 3 minutes. Bills you for 30.' },
+            { id: 'bpt-o1', name: 'BPT-o1 "Strawberry"', tier: 4, drain: 150, iqOutput: 100, specialty: { type: 'reasoning', desc: '+100% IQ, +5x crit damage', iqMult: 2.0, critMult: 5 }, flavor: 'Thinks for 3 minutes. Bills you for 30.' },
             { id: 'bpt-5', name: 'BPT-5', tier: 5, drain: 600, iqOutput: 500, specialty: { type: 'all', desc: '+50% everything', globalMult: 1.5 }, flavor: 'The board fired everyone to make this' },
         ],
     },
@@ -47,7 +47,7 @@ const COMPANIES = [
         models: [
             { id: 'co-parrot-1', name: 'Co-Parrot 1.0', tier: 1, drain: 2, iqOutput: 0.2, specialty: { type: 'code', desc: '+50% click power', clickMult: 1.5 }, flavor: 'Autocomplete became sentient' },
             { id: 'co-parrot-workspace', name: 'Co-Parrot Workspace', tier: 2, drain: 7, iqOutput: 2.2, specialty: { type: 'code', desc: '+80% click power', clickMult: 1.8 }, flavor: 'Lives in your IDE. Knows your secrets.' },
-            { id: 'co-parrot-agent', name: 'Co-Parrot Agent', tier: 3, drain: 35, iqOutput: 22, specialty: { type: 'auto', desc: '+50% TPS, +50% click', tpsMult: 1.5, clickMult: 1.5 }, flavor: 'Does your PRs while you sleep' },
+            { id: 'co-parrot-agent', name: 'Co-Parrot Agent', tier: 3, drain: 35, iqOutput: 22, specialty: { type: 'auto', desc: '+50% TPS, +50% click, +20% crit', tpsMult: 1.5, clickMult: 1.5, critChance: 0.20 }, flavor: 'Does your PRs while you sleep' },
             { id: 'phi-4-mini', name: 'Phi-4 Mini', tier: 2, drain: 3, iqOutput: 1.2, specialty: { type: 'efficient', desc: '-40% drain', drainMult: 0.6 }, flavor: 'Tiny but mighty. Runs on a potato.' },
             { id: 'co-parrot-ultra', name: 'Co-Parrot Ultra', tier: 5, drain: 550, iqOutput: 480, specialty: { type: 'code', desc: '+150% click, +50% TPS', clickMult: 2.5, tpsMult: 1.5 }, flavor: 'Includes Clippy 2.0 as a free bonus' },
         ],
@@ -72,7 +72,7 @@ const COMPANIES = [
         color: '#d4d474',
         models: [
             { id: 'gronk-1', name: 'Gronk 1', tier: 1, drain: 4, iqOutput: 0.5, specialty: { type: 'chaos', desc: 'Random 2× IQ bursts', chaosMult: 2.0 }, flavor: 'Unfiltered. Unhinged. Unpredictable.' },
-            { id: 'gronk-2', name: 'Gronk 2', tier: 2, drain: 10, iqOutput: 3.0, specialty: { type: 'chaos', desc: 'Random 3× IQ bursts', chaosMult: 3.0 }, flavor: 'Now with 50% less accidental manifestos' },
+            { id: 'gronk-2', name: 'Gronk 2', tier: 2, drain: 10, iqOutput: 3.0, specialty: { type: 'chaos', desc: 'Random 3× IQ bursts, +15% crit', chaosMult: 3.0, critChance: 0.15 }, flavor: 'Now with 50% less accidental manifestos' },
             { id: 'gronk-3', name: 'Gronk 3', tier: 4, drain: 130, iqOutput: 90, specialty: { type: 'chaos', desc: 'Random 4× bursts, +30% all', chaosMult: 4.0, globalMult: 1.3 }, flavor: '"Fun mode" is not optional. It\'s the only mode.' },
         ],
     },
