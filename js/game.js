@@ -179,12 +179,15 @@ const Game = {
         if (prestigeConfirm) prestigeConfirm.addEventListener('click', () => this.doPrestige());
     },
 
-    // ASI threshold = 1 million intelligence (halved by 'singularity-approach' research)
+    // ASI threshold escalates 10x per prestige.
+    // First prestige: 1M. Then 10M, 100M, 1B, 10B...
+    // Halved by 'singularity-approach' research.
     ASI_THRESHOLD_BASE: 1_000_000,
     get ASI_THRESHOLD() {
-        return hasResearch(this.state, 'singularity-approach')
-            ? this.ASI_THRESHOLD_BASE / 2
-            : this.ASI_THRESHOLD_BASE;
+        const tier = this.state.asiAchieved || 0;
+        let t = this.ASI_THRESHOLD_BASE * Math.pow(10, tier);
+        if (hasResearch(this.state, 'singularity-approach')) t /= 2;
+        return t;
     },
 
     // Research Points gained = floor(sqrt(intelligence / threshold))
@@ -198,10 +201,14 @@ const Game = {
         const gain = this.calculatePrestigeGain();
         if (gain < 1) return;
         const newTotal = (this.state.researchPoints || 0) + gain;
+        // After this prestige, asiAchieved goes up by 1, so the next threshold escalates
+        const nextThreshold = this.ASI_THRESHOLD_BASE
+            * Math.pow(10, (this.state.asiAchieved || 0) + 1)
+            * (hasResearch(this.state, 'singularity-approach') ? 0.5 : 1);
         document.getElementById('prestige-iq-display').textContent = UI.formatNumber(this.state.intelligence);
         document.getElementById('prestige-rp-gain').textContent = gain;
         document.getElementById('prestige-rp-total').textContent = newTotal;
-        document.getElementById('prestige-bonus-display').textContent = (newTotal * 25).toFixed(0);
+        document.getElementById('prestige-next-threshold').textContent = UI.formatNumber(nextThreshold);
         document.getElementById('prestige-overlay').classList.remove('hidden');
     },
 

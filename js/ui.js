@@ -46,7 +46,8 @@ const UI = {
         '⬆️ Higher-tier models cost more IQ but produce vastly more — invest in upgrades.',
         '🎼 Run multiple models with different specialties to stack their bonuses.',
         '👁️ Hover any stat in the top bar for an explanation of what it does.',
-        '🌌 Reach 1 MILLION Intelligence to prestige into ASI and earn Research Points.',
+        '🌌 Reach the ASI threshold (starts at 1M, x10 per prestige) to earn Research Points.',
+        '🌌 Each prestige raises the bar x10: 1M → 10M → 100M → 1B... compound your RP wisely.',
         '🔬 Research Points spent in the Research Lab unlock permanent perks that survive prestige.',
         '🧠 Cognitive Bandwidth is the bread and butter — buy 10 ranks for a 350% TPS & IQ boost.',
         '🍓 Strawberry Memory permanently adds +10% crit chance for just 1 RP.',
@@ -257,9 +258,11 @@ const UI = {
                 ${row('Research Points (available)', fmt(s.researchPoints || 0), 'accent')}
                 ${row('Research Points (earned)', fmt(s.researchPointsTotal || 0))}
                 ${row('Times prestiged (ASI)', fmt(s.asiAchieved || 0))}
+                ${row('Current ASI threshold', fmt(Game.ASI_THRESHOLD) + ' IQ', 'gold')}
                 ${row('Available RP now', fmt(Game.calculatePrestigeGain()), 'gold')}
-                ${row('Next RP threshold', fmt(nextRPThreshold) + ' IQ')}
-                ${formula('floor(√(intelligence / threshold)) RP at prestige')}
+                ${row('IQ for next RP', fmt(nextRPThreshold))}
+                ${row('Next prestige threshold', fmt(Game.ASI_THRESHOLD * 10) + ' IQ')}
+                ${formula('Threshold x10 per prestige; RP = floor(√(IQ / threshold))')}
             </div>
 
             <div class="stats-section session">

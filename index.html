@@ -37,7 +37,7 @@
         </header>
 
         <!-- ASI Progress Bar -->
-        <div id="asi-progress-container" data-tooltip="Reach 1 million Intelligence to achieve ASI and unlock prestige.">
+        <div id="asi-progress-container" data-tooltip="Reach the ASI threshold to prestige. Threshold starts at 1M and x10s with every prestige.">
             <div class="asi-label">
                 <span>🌌 PATH TO ASI</span>
                 <span id="asi-rp-display" class="asi-rp" style="display:none">⚡ <span id="rp-count">0</span> RP</span>
@@ -127,17 +127,17 @@
                         <strong class="rp-gain">+<span id="prestige-rp-gain">0</span> RP</strong>
                     </div>
                     <div class="prestige-row">
-                        <span>Total after prestige:</span>
+                        <span>Total available after prestige:</span>
                         <strong><span id="prestige-rp-total">0</span> RP</strong>
                     </div>
                     <div class="prestige-row">
-                        <span>Permanent bonus:</span>
-                        <strong class="rp-bonus">+<span id="prestige-bonus-display">0</span>% TPS & IQ</strong>
+                        <span>Next ASI threshold:</span>
+                        <strong class="rp-bonus"><span id="prestige-next-threshold">0</span> IQ</strong>
                     </div>
                 </div>
                 <div class="prestige-warning">
                     ⚠️ This will reset: tokens, buildings, upgrades, models, intelligence.<br/>
-                    You keep: Research Points and the bonus they grant.
+                    You keep: Research Points, Research Lab perks, lifetime stats.
                 </div>
                 <div class="prestige-actions">
                     <button id="prestige-cancel" class="footer-btn">CANCEL</button>
