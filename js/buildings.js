@@ -110,6 +110,15 @@ const BUILDINGS = [
         baseTps: 1_000_000,
         costMultiplier: 1.15,
     },
+    {
+        id: 'agi-system',
+        name: 'AGI',
+        icon: '🪞',
+        description: '"It just asked who built it. And why. Should we be worried?"',
+        baseCost: 100_000_000_000,
+        baseTps: 10_000_000,
+        costMultiplier: 1.18,
+    },
 ];
 
 // Calculate cost for the next purchase of a building

@@ -53,6 +53,7 @@ const UI = {
         '🍓 Strawberry Memory permanently adds +10% crit chance for just 1 RP.',
         '💾 Persistent Knowledge keeps your highest-tier model across prestige.',
         '⚛️ Quantum Cluster is the top tech-stack tier; ASI sits beyond it as the prestige goal.',
+        '🪞 AGI is the wildest building — human-level general intelligence. The last step before ASI.',
     ],
 
     setupTipsRotation() {
