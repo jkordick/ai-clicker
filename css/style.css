@@ -1196,13 +1196,41 @@ body.shift-held .building-card[data-cost-bulk="0"] {
 }
 
 .model-card {
+    flex-direction: row;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 12px;
+}
+
+.model-tier-badge {
+    flex: 0 0 auto;
+    min-width: 36px;
+    padding: 6px 4px;
+    text-align: center;
+    color: var(--yellow);
+    background: #101010;
+    border: var(--pixel) solid #303030;
+    box-shadow: 2px 2px 0 var(--shadow);
+    font-family: 'Press Start 2P', monospace;
+    font-size: 0.6rem;
+}
+
+.model-main {
+    flex: 1 1 auto;
+    min-width: 0;
+    display: flex;
     flex-direction: column;
-    align-items: stretch;
-    gap: 8px;
+    gap: 4px;
+}
+
+.model-title-row {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    flex-wrap: wrap;
 }
 
 .model-company {
-    color: var(--magenta);
     font-family: 'Press Start 2P', monospace;
     font-size: 0.5rem;
     line-height: 1.6;
@@ -1210,32 +1238,45 @@ body.shift-held .building-card[data-cost-bulk="0"] {
     text-shadow: 2px 2px 0 var(--shadow);
 }
 
-.model-stats {
+.model-meta-row {
     display: flex;
     flex-wrap: wrap;
-    gap: 8px 14px;
+    gap: 4px 12px;
+    align-items: center;
     color: var(--text-dim);
+    font-size: 0.85em;
 }
 
-.model-stats span {
-    padding: 4px 8px;
-    background: #101010;
-    border: var(--pixel) solid #303030;
-    box-shadow: 2px 2px 0 var(--shadow);
+.model-stat {
+    color: var(--text-dim);
 }
 
 .model-specialty {
     color: var(--neon-green);
+    font-size: 0.9em;
+}
+
+.model-flavor {
+    color: var(--text-dim);
+    font-style: italic;
+    font-size: 0.8em;
+    opacity: 0.7;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .model-action {
+    flex: 0 0 auto;
     display: inline-flex;
-    align-self: flex-start;
+    align-self: center;
     padding: 6px 10px;
     color: var(--cyan);
     background: #101010;
     border: var(--pixel) solid currentColor;
     box-shadow: 2px 2px 0 var(--shadow);
+    text-align: center;
+    white-space: nowrap;
 }
 
 .model-action.owned {

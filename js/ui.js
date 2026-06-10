@@ -590,15 +590,19 @@ const UI = {
 
                 return `
                     <div class="model-card ${cssClass}" data-model-id="${model.id}" style="border-left: 3px solid ${company.color}">
-                        <div class="model-company" style="color: ${company.color}">${company.name}</div>
-                        <div class="model-name">${model.name}</div>
-                        <div class="building-desc">${model.flavor}</div>
-                        <div class="model-stats">
-                            <span>Tier ${model.tier}</span>
-                            <span>Drain: ${model.drain}/s</span>
-                            <span>IQ: ${model.iqOutput}/s</span>
+                        <div class="model-tier-badge">T${model.tier}</div>
+                        <div class="model-main">
+                            <div class="model-title-row">
+                                <span class="model-name">${model.name}</span>
+                                <span class="model-company" style="color: ${company.color}">${company.name}</span>
+                            </div>
+                            <div class="model-meta-row">
+                                <span class="model-stat" title="Token drain per second">▼ ${model.drain}</span>
+                                <span class="model-stat" title="Intelligence per second">▲ ${model.iqOutput}</span>
+                                <span class="model-specialty">${model.specialty.desc}</span>
+                            </div>
+                            <div class="model-flavor">${model.flavor}</div>
                         </div>
-                        <div class="model-specialty">${model.specialty.desc}</div>
                         <div class="model-action ${actionClass}">${actionText}</div>
                     </div>
                 `;
