@@ -21,6 +21,8 @@ function getDefaultState() {
         critMultBonus: 0,
         computeCostRate: 0.05,
         researchPoints: 0,
+        researchPointsTotal: 0,
+        researchUpgrades: {},
         asiAchieved: 0,
         modelSlots: 1,
         buildings: {},

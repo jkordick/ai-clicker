@@ -25,6 +25,14 @@ const Game = {
             if (this.state.critMultBonus == null) this.state.critMultBonus = 0;
             if (this.state.computeCostRate == null) this.state.computeCostRate = 0.05;
             if (this.state.researchPoints == null) this.state.researchPoints = 0;
+            // Migration: prior players had RP that auto-granted +25% passive.
+            // Backfill researchPointsTotal so they show a sensible lifetime total
+            // and so the Research tab unlocks.
+            if (this.state.researchPointsTotal == null
+                || this.state.researchPointsTotal < this.state.researchPoints) {
+                this.state.researchPointsTotal = this.state.researchPoints || 0;
+            }
+            if (!this.state.researchUpgrades) this.state.researchUpgrades = {};
             if (this.state.asiAchieved == null) this.state.asiAchieved = 0;
 
             // Stats migration: ensure all stat fields exist
@@ -171,8 +179,13 @@ const Game = {
         if (prestigeConfirm) prestigeConfirm.addEventListener('click', () => this.doPrestige());
     },
 
-    // ASI threshold = 1 billion intelligence
-    ASI_THRESHOLD: 1_000_000_000,
+    // ASI threshold = 1 billion intelligence (halved by 'singularity-approach' research)
+    ASI_THRESHOLD_BASE: 1_000_000_000,
+    get ASI_THRESHOLD() {
+        return hasResearch(this.state, 'singularity-approach')
+            ? this.ASI_THRESHOLD_BASE / 2
+            : this.ASI_THRESHOLD_BASE;
+    },
 
     // Research Points gained = floor(sqrt(intelligence / threshold))
     calculatePrestigeGain() {
@@ -196,6 +209,7 @@ const Game = {
         const gain = this.calculatePrestigeGain();
         if (gain < 1) return;
         const newRP = (this.state.researchPoints || 0) + gain;
+        const newRPTotal = (this.state.researchPointsTotal || 0) + gain;
         const newASICount = (this.state.asiAchieved || 0) + 1;
 
         // Preserve lifetime stats across prestige
@@ -203,18 +217,52 @@ const Game = {
         preservedStats.prestigeCount = (preservedStats.prestigeCount || 0) + 1;
         preservedStats.sessionStart = Date.now();
 
-        // Reset state but keep RP, ASI count, and lifetime stats
+        // Preserve research upgrades (the whole point of RP)
+        const preservedResearch = { ...(this.state.researchUpgrades || {}) };
+
+        // Persistent Knowledge research: keep highest-tier owned model
+        let keptModelId = null;
+        if (preservedResearch['persistent-knowledge'] && this.state.ownedModels.length > 0) {
+            let bestTier = -1;
+            for (const id of this.state.ownedModels) {
+                const m = this.findModel(id);
+                if (m && m.tier > bestTier) { bestTier = m.tier; keptModelId = id; }
+            }
+        }
+
+        // Reset state but keep RP, ASI count, lifetime stats, research
         const fresh = getDefaultState();
         fresh.researchPoints = newRP;
+        fresh.researchPointsTotal = newRPTotal;
+        fresh.researchUpgrades = preservedResearch;
         fresh.asiAchieved = newASICount;
         fresh.stats = preservedStats;
+
+        // Head Start research: 10K tokens to start
+        if (preservedResearch['head-start']) {
+            fresh.tokens = 10000;
+        }
+
+        // Re-grant kept model so the user can re-pick or auto-activates
+        if (keptModelId) {
+            fresh.ownedModels = [keptModelId];
+            fresh.activeModels = [keptModelId];
+            fresh.startingModel = keptModelId;
+        }
+
         this.state = fresh;
         this.save();
 
         document.getElementById('prestige-overlay').classList.add('hidden');
-        UI.log(`🌌 ASI achieved! Released model. Gained ${gain} RP (total: ${newRP})`, 'achievement');
+        UI.log(`🌌 ASI achieved! Gained ${gain} RP (total earned: ${newRPTotal})`, 'achievement');
         this.render();
-        this.showModelSelect();
+
+        // Only show model select if we don't already have one (Persistent Knowledge case)
+        if (!keptModelId) {
+            this.showModelSelect();
+        } else {
+            this.startGame();
+        }
     },
 
     handleClick(e) {
@@ -244,9 +292,10 @@ const Game = {
         UI.spawnFlyingToken(power, e.clientX, e.clientY, isCrit);
     },
 
-    // Base 5% crit chance, additive from upgrades + active model specialties
+    // Base 5% crit chance, additive from upgrades + active model specialties + research
     getCritChance() {
         let chance = 0.05 + (this.state.critChanceBonus || 0);
+        if (hasResearch(this.state, 'strawberry-memory')) chance += 0.10;
         for (const modelId of this.state.activeModels) {
             const model = this.findModel(modelId);
             if (model && model.specialty.critChance) {
@@ -282,6 +331,9 @@ const Game = {
             }
         }
 
+        // Echo Chamber research: ×2 click power
+        if (hasResearch(this.state, 'echo-chamber')) clickMult *= 2;
+
         return Math.floor(baseClick * clickMult);
     },
 
@@ -306,12 +358,18 @@ const Game = {
             }
         }
 
+        // Chained Reasoning research: +1% global TPS per owned model
+        if (hasResearch(this.state, 'chained-reasoning')) {
+            tpsMult *= 1 + (this.state.ownedModels.length * 0.01);
+        }
+
         return totalTps * tpsMult * this.getResearchMultiplier();
     },
 
-    // Each Research Point grants +25% multiplier (additive base 1.0)
+    // Each Research Point... no longer auto-grants. See Cognitive Bandwidth instead.
     getResearchMultiplier() {
-        return 1 + (this.state.researchPoints || 0) * 0.25;
+        const rank = getResearchRank(this.state, 'cognitive-bandwidth');
+        return 1 + rank * 0.25;
     },
 
     // Calculate total token drain from all active models
@@ -338,7 +396,9 @@ const Game = {
     calculateComputeCost() {
         if (this.state.activeModels.length === 0) return 0; // no models = no compute
         const tps = this.calculateTps();
-        const rate = (this.state.computeCostRate || 0.05) * (this.state.drainMultiplier || 1);
+        let baseRate = this.state.computeCostRate || 0.05;
+        if (hasResearch(this.state, 'compute-optimization')) baseRate *= 0.5;
+        const rate = baseRate * (this.state.drainMultiplier || 1);
         return tps * rate;
     },
 
@@ -362,6 +422,8 @@ const Game = {
 
     getModelSlots() {
         let slots = this.state.modelSlots;
+        // Cognitive Surplus research: +1 per rank
+        slots += getResearchRank(this.state, 'cognitive-surplus');
         for (const modelId of this.state.activeModels) {
             const model = this.findModel(modelId);
             if (model && model.specialty.slotBonus) {
@@ -430,6 +492,28 @@ const Game = {
         UI.renderBuildings(BUILDINGS, this.state, (id, qty) => this.buyBuilding(id, qty));
         UI.renderUpgrades(UPGRADES, this.state, (id) => this.buyUpgrade(id));
         UI.renderModels(COMPANIES, this.state, (id) => this.buyModel(id), (id) => this.activateModel(id));
+        UI.renderResearch(RESEARCH_UPGRADES, this.state, (id) => this.buyResearch(id));
+    },
+
+    buyResearch(id) {
+        const upgrade = RESEARCH_UPGRADES.find(u => u.id === id);
+        if (!upgrade) return;
+        const currentRank = getResearchRank(this.state, id);
+        if (currentRank >= upgrade.maxRank) return;
+        const cost = getResearchCost(upgrade, currentRank);
+        if ((this.state.researchPoints || 0) < cost) return;
+
+        this.state.researchPoints -= cost;
+        this.state.researchUpgrades[id] = currentRank + 1;
+        const newRank = currentRank + 1;
+        UI.log(
+            upgrade.maxRank > 1
+                ? `🔬 Researched: ${upgrade.name} (rank ${newRank}/${upgrade.maxRank})`
+                : `🔬 Researched: ${upgrade.name}`,
+            'achievement'
+        );
+        // Re-render in case slot count, multipliers, etc. changed
+        this.render();
     },
 
     buyBuilding(id, quantity = 1) {
@@ -485,6 +569,11 @@ const Game = {
         if (this.state.ownedModels.includes(modelId)) return;
 
         let cost = MODEL_TIER_COSTS[model.tier] || 0;
+
+        // Recursive Insight research: Tier 5+ models cost 50% less IQ
+        if (model.tier >= 5 && hasResearch(this.state, 'recursive-insight')) {
+            cost *= 0.5;
+        }
 
         // Apply IQ cost reduction from Zeta models
         for (const ownedId of this.state.activeModels) {

@@ -46,6 +46,12 @@ const UI = {
         '⬆️ Higher-tier models cost more IQ but produce vastly more — invest in upgrades.',
         '🎼 Run multiple models with different specialties to stack their bonuses.',
         '👁️ Hover any stat in the top bar for an explanation of what it does.',
+        '🌌 Reach 1 BILLION Intelligence to prestige into ASI and earn Research Points.',
+        '🔬 Research Points spent in the Research Lab unlock permanent perks that survive prestige.',
+        '🧠 Cognitive Bandwidth is the bread and butter — buy 10 ranks for a 350% TPS & IQ boost.',
+        '🍓 Strawberry Memory permanently adds +10% crit chance for just 1 RP.',
+        '💾 Persistent Knowledge keeps your highest-tier model across prestige.',
+        '⚛️ Quantum Cluster is the top tech-stack tier; ASI sits beyond it as the prestige goal.',
     ],
 
     setupTipsRotation() {
@@ -226,7 +232,7 @@ const UI = {
                 ${row('IQ / sec', '+' + fmtRate(iqps), 'accent')}
                 ${row('IQ multiplier', x(s.iqMultiplier), 'accent')}
                 ${row('Research multiplier', x(researchMult), researchMult > 1 ? 'positive' : '')}
-                ${formula(`+${(researchMult - 1) * 100 | 0}% from ${s.researchPoints || 0} RP × 25%`)}
+                ${formula(`+${(researchMult - 1) * 100 | 0}% from Cognitive Bandwidth research`)}
                 ${row('Current IQ', fmt(s.intelligence), 'accent')}
                 ${row('Peak IQ', fmt(st.highestIntelligence))}
                 ${row('Peak IQ/s', '+' + fmt(st.highestIqps) + '/s')}
@@ -248,11 +254,12 @@ const UI = {
 
             <div class="stats-section prestige">
                 <h3 class="stats-section-title">🌌 Prestige</h3>
-                ${row('Research Points', fmt(s.researchPoints || 0), 'accent')}
+                ${row('Research Points (available)', fmt(s.researchPoints || 0), 'accent')}
+                ${row('Research Points (earned)', fmt(s.researchPointsTotal || 0))}
                 ${row('Times prestiged (ASI)', fmt(s.asiAchieved || 0))}
                 ${row('Available RP now', fmt(Game.calculatePrestigeGain()), 'gold')}
                 ${row('Next RP threshold', fmt(nextRPThreshold) + ' IQ')}
-                ${formula('floor(√(intelligence / 1B)) RP at prestige')}
+                ${formula('floor(√(intelligence / threshold)) RP at prestige')}
             </div>
 
             <div class="stats-section session">
@@ -452,6 +459,79 @@ const UI = {
         this.elements.upgradesList.querySelectorAll('.upgrade-card:not(.purchased):not(.locked)').forEach(card => {
             card.addEventListener('click', () => {
                 const id = card.dataset.upgradeId;
+                onBuy(id);
+            });
+        });
+    },
+
+    renderResearch(researchUpgrades, state, onBuy) {
+        const tabBtn = document.getElementById('research-tab-btn');
+        const list = document.getElementById('research-list');
+        const header = document.getElementById('research-header');
+        if (!list || !header || !tabBtn) return;
+
+        // Tab is hidden until the player has earned at least 1 RP (lifetime)
+        const totalRP = state.researchPointsTotal || 0;
+        const unlocked = totalRP > 0 || (state.asiAchieved || 0) > 0;
+        tabBtn.classList.toggle('hidden', !unlocked);
+
+        const availableRP = state.researchPoints || 0;
+        const spentRP = totalRP - availableRP;
+        header.innerHTML = `
+            <div class="research-summary">
+                <div class="research-rp">
+                    <span class="rp-label">Research Points</span>
+                    <span class="rp-value">🔬 ${this.formatNumber(availableRP)}</span>
+                </div>
+                <div class="research-meta">
+                    <span>Spent: ${this.formatNumber(spentRP)}</span>
+                    <span>Earned (lifetime): ${this.formatNumber(totalRP)}</span>
+                </div>
+            </div>
+            <div class="shop-hint">🔬 Permanent perks. Survive prestige. Spend wisely.</div>
+        `;
+
+        // Group by tier
+        const tiers = { 1: [], 2: [], 3: [] };
+        for (const u of researchUpgrades) tiers[u.tier].push(u);
+
+        const tierLabels = { 1: 'Foundational', 2: 'Advanced', 3: 'Endgame' };
+
+        const renderCard = (upgrade) => {
+            const rank = getResearchRank(state, upgrade.id);
+            const maxed = rank >= upgrade.maxRank;
+            const cost = maxed ? 0 : getResearchCost(upgrade, rank);
+            const affordable = !maxed && availableRP >= cost;
+            const cssClass = maxed ? 'maxed' : (affordable ? 'affordable' : 'cant-afford');
+            const rankLabel = upgrade.maxRank > 1
+                ? `<span class="research-rank">[${rank}/${upgrade.maxRank}]</span>`
+                : '';
+            const costLabel = maxed
+                ? 'MAXED'
+                : `🔬 ${cost} RP`;
+            return `
+                <div class="upgrade-card research-card ${cssClass}" data-research-id="${upgrade.id}">
+                    <div class="upgrade-icon">${upgrade.icon}</div>
+                    <div class="upgrade-info">
+                        <div class="upgrade-name">${upgrade.name} ${rankLabel}${maxed ? ' ✓' : ''}</div>
+                        <div class="upgrade-desc">${upgrade.description}</div>
+                    </div>
+                    <div class="upgrade-cost">${costLabel}</div>
+                </div>
+            `;
+        };
+
+        let html = '';
+        for (const tier of [1, 2, 3]) {
+            if (tiers[tier].length === 0) continue;
+            html += `<div class="research-tier-header">⟨ ${tierLabels[tier]} ⟩</div>`;
+            html += tiers[tier].map(renderCard).join('');
+        }
+        list.innerHTML = html;
+
+        list.querySelectorAll('.research-card:not(.maxed)').forEach(card => {
+            card.addEventListener('click', () => {
+                const id = card.dataset.researchId;
                 onBuy(id);
             });
         });

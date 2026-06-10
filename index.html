@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>🪙 Token Clicker — Build Your AI Empire</title>
-    <link rel="stylesheet" href="css/style.css?v=6">
+    <link rel="stylesheet" href="css/style.css?v=7">
 </head>
 <body>
     <div id="game-container">
@@ -72,6 +72,7 @@
                     <button class="tab active" data-tab="buildings">🛠️ Tech Stack</button>
                     <button class="tab" data-tab="upgrades">⬆️ Upgrades</button>
                     <button class="tab" data-tab="models">🤖 Models</button>
+                    <button class="tab hidden" id="research-tab-btn" data-tab="research">🔬 Research</button>
                     <button class="tab" data-tab="stats">📊 Stats</button>
                 </div>
 
@@ -87,6 +88,11 @@
                 <div id="tab-models" class="tab-content">
                     <div id="model-shop-info"></div>
                     <div id="models-list"></div>
+                </div>
+
+                <div id="tab-research" class="tab-content">
+                    <div id="research-header"></div>
+                    <div id="research-list"></div>
                 </div>
 
                 <div id="tab-stats" class="tab-content">
@@ -144,6 +150,7 @@
     <script src="js/buildings.js"></script>
     <script src="js/upgrades.js"></script>
     <script src="js/companies.js"></script>
+    <script src="js/research.js"></script>
     <script src="js/save.js"></script>
     <script src="js/ui.js"></script>
     <script src="js/game.js"></script>
