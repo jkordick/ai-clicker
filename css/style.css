@@ -276,13 +276,14 @@ textarea {
 }
 
 /* Tooltips for stat groups */
-.stat-group[data-tooltip]::before {
+.stat-group[data-tooltip]::before,
+#asi-progress-container[data-tooltip]::before {
     content: attr(data-tooltip);
     position: absolute;
     left: 50%;
     top: calc(100% + 14px);
     transform: translateX(-50%);
-    width: min(260px, 80vw);
+    width: min(320px, 80vw);
     padding: 12px;
     background: #111111;
     color: var(--text-main);
@@ -298,11 +299,18 @@ textarea {
     pointer-events: none;
     transition: opacity 0.12s steps(2), transform 0.12s steps(2);
     z-index: 200;
+    white-space: pre-line;
 }
 
-.stat-group[data-tooltip]:hover::before {
+.stat-group[data-tooltip]:hover::before,
+#asi-progress-container[data-tooltip]:hover::before {
     opacity: 1;
     transform: translateX(-50%) translateY(2px);
+}
+
+/* ASI container tooltip needs relative positioning context */
+#asi-progress-container {
+    position: relative;
 }
 
 /* Tip widget — top-right corner of stats bar */
@@ -2025,4 +2033,12 @@ body.shift-held .building-card[data-cost-bulk="0"] {
     font-size: 0.6rem;
     color: #c699ff;
     margin-left: 4px;
+}
+
+.modal-acronym {
+    font-style: italic;
+    color: var(--text-dim) !important;
+    font-size: 0.65rem !important;
+    margin-top: -8px;
+    margin-bottom: 4px;
 }
