@@ -1617,6 +1617,15 @@ body.shift-held .building-card[data-cost-bulk="0"] {
         order: -1;
     }
 
+    .kofi-link {
+        position: relative;
+        top: auto;
+        left: auto;
+        order: -2;
+        align-self: flex-start;
+        margin-bottom: 4px;
+    }
+
     #stats-bar {
         flex-wrap: wrap;
     }
@@ -1652,6 +1661,15 @@ body.shift-held .building-card[data-cost-bulk="0"] {
         max-width: none;
         width: 100%;
         order: -1;
+    }
+
+    .kofi-link {
+        position: relative;
+        top: auto;
+        left: auto;
+        order: -2;
+        align-self: flex-start;
+        margin-bottom: 4px;
     }
 }
 
@@ -1697,6 +1715,14 @@ body.shift-held .building-card[data-cost-bulk="0"] {
         max-width: none;
         width: 100%;
         order: -1;
+    }
+
+    .kofi-link {
+        position: relative;
+        top: auto;
+        left: auto;
+        order: -2;
+        align-self: flex-start;
     }
 
     /* Stat tooltips: position relative to bar (avoid clipping) */
