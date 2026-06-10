@@ -286,23 +286,36 @@ const Game = {
     },
 
     renderShop() {
-        UI.renderBuildings(BUILDINGS, this.state, (id) => this.buyBuilding(id));
+        UI.renderBuildings(BUILDINGS, this.state, (id, qty) => this.buyBuilding(id, qty));
         UI.renderUpgrades(UPGRADES, this.state, (id) => this.buyUpgrade(id));
         UI.renderModels(COMPANIES, this.state, (id) => this.buyModel(id), (id) => this.activateModel(id));
     },
 
-    buyBuilding(id) {
+    buyBuilding(id, quantity = 1) {
         const building = BUILDINGS.find(b => b.id === id);
         if (!building) return;
 
-        const owned = this.state.buildings[id] || 0;
-        let cost = getBuildingCost(building, owned);
-        cost = Math.floor(cost * this.state.costMultiplier);
+        let bought = 0;
+        let totalSpent = 0;
+        for (let i = 0; i < quantity; i++) {
+            const owned = this.state.buildings[id] || 0;
+            let cost = getBuildingCost(building, owned);
+            cost = Math.floor(cost * this.state.costMultiplier);
 
-        if (this.state.tokens >= cost) {
+            if (this.state.tokens < cost) break;
             this.state.tokens -= cost;
             this.state.buildings[id] = owned + 1;
-            UI.log(`Built ${building.name} (#${owned + 1})`, 'purchase');
+            totalSpent += cost;
+            bought++;
+        }
+
+        if (bought > 0) {
+            const owned = this.state.buildings[id];
+            if (bought === 1) {
+                UI.log(`Built ${building.name} (#${owned})`, 'purchase');
+            } else {
+                UI.log(`Built ${bought}x ${building.name} for 🪙${UI.formatNumber(totalSpent)}`, 'purchase');
+            }
             this.renderShop();
         }
     },

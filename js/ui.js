@@ -22,6 +22,14 @@ const UI = {
         };
 
         this.setupTabs();
+        this.setupShiftTracker();
+    },
+
+    setupShiftTracker() {
+        const setShift = (on) => document.body.classList.toggle('shift-held', on);
+        window.addEventListener('keydown', (e) => { if (e.key === 'Shift') setShift(true); });
+        window.addEventListener('keyup', (e) => { if (e.key === 'Shift') setShift(false); });
+        window.addEventListener('blur', () => setShift(false));
     },
 
     setupTabs() {
@@ -135,9 +143,19 @@ const UI = {
                 statsText = `+${this.formatTps(building.baseTps * multiplier * state.globalMultiplier)} TPS each | Total: ${this.formatTps(tps)} TPS`;
             }
 
+            // Compute bulk x10 cost (best-effort: assume current state)
+            let bulkCost = 0;
+            let simOwned = owned;
+            for (let i = 0; i < 10; i++) {
+                bulkCost += Math.floor(getBuildingCost(building, simOwned) * state.costMultiplier);
+                simOwned++;
+            }
+            const canAffordBulk = state.tokens >= bulkCost;
+
             return `
                 <div class="building-card ${canAfford ? '' : 'cant-afford'}"
-                     data-building-id="${building.id}">
+                     data-building-id="${building.id}"
+                     data-cost-bulk="${canAffordBulk ? '1' : '0'}">
                     <div class="building-icon">${building.icon}</div>
                     <div class="building-info">
                         <div class="building-name">${building.name}</div>
@@ -145,7 +163,10 @@ const UI = {
                         <div class="building-stats">${statsText}</div>
                     </div>
                     <div class="building-right">
-                        <div class="building-cost">🪙 ${this.formatNumber(cost)}</div>
+                        <div class="building-cost">
+                            <span class="cost-single">🪙 ${this.formatNumber(cost)}</span>
+                            <span class="cost-bulk">x10: 🪙 ${this.formatNumber(bulkCost)}</span>
+                        </div>
                         <div class="building-owned">Owned: ${owned}</div>
                     </div>
                 </div>
@@ -156,9 +177,9 @@ const UI = {
 
         // Attach click handlers
         this.elements.buildingsList.querySelectorAll('.building-card').forEach(card => {
-            card.addEventListener('click', () => {
+            card.addEventListener('click', (e) => {
                 const id = card.dataset.buildingId;
-                onBuy(id);
+                onBuy(id, e.shiftKey ? 10 : 1);
             });
         });
     },
@@ -394,6 +415,15 @@ const UI = {
             const owned = state.buildings[id] || 0;
             const cost = Math.floor(getBuildingCost(building, owned) * (state.costMultiplier || 1));
             card.classList.toggle('cant-afford', state.tokens < cost);
+
+            // Update bulk affordability
+            let bulkCost = 0;
+            let simOwned = owned;
+            for (let i = 0; i < 10; i++) {
+                bulkCost += Math.floor(getBuildingCost(building, simOwned) * (state.costMultiplier || 1));
+                simOwned++;
+            }
+            card.dataset.costBulk = state.tokens >= bulkCost ? '1' : '0';
         });
 
         this.elements.upgradesList.querySelectorAll('.upgrade-card:not(.purchased)').forEach(card => {

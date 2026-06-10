@@ -882,6 +882,24 @@ textarea {
     text-shadow: 1px 1px 0 var(--shadow);
 }
 
+.building-cost .cost-bulk {
+    display: none;
+    color: var(--magenta);
+}
+
+body.shift-held .building-cost .cost-single {
+    display: none;
+}
+
+body.shift-held .building-cost .cost-bulk {
+    display: inline;
+}
+
+body.shift-held .building-card[data-cost-bulk="0"] {
+    opacity: 0.5;
+    filter: grayscale(0.4);
+}
+
 .building-owned {
     margin-top: 8px;
     color: var(--text-muted);
