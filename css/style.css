@@ -567,6 +567,8 @@ textarea {
     max-height: 170px;
     padding: 12px;
     overflow-y: auto;
+    user-select: none;
+    -webkit-user-select: none;
     background:
         linear-gradient(180deg, rgba(0, 0, 0, 0.5), rgba(10, 10, 10, 0.9)),
         var(--scanline);
