@@ -142,12 +142,14 @@ const UI = {
 
         const activeModels = Game.state.activeModels || [];
         const slots = Game.getModelSlots();
+        const iqMult = Game.state.iqMultiplier || 1;
+        const drainMult = Game.state.drainMultiplier || 1;
 
         // Update slots badge
         const slotsEl = document.getElementById('model-slots-display');
         if (slotsEl) slotsEl.textContent = `${activeModels.length}/${slots}`;
 
-        const key = activeModels.join(',');
+        const key = `${activeModels.join(',')}|${iqMult}|${drainMult}`;
         if (bar.dataset.lastKey === key) return;
         bar.dataset.lastKey = key;
 
@@ -159,9 +161,11 @@ const UI = {
         const chips = activeModels.map(modelId => {
             const model = Game.findModel(modelId);
             if (!model) return '';
-            const drainVal = model.specialty.drainMult ? model.drain * model.specialty.drainMult : model.drain;
+            let drainVal = model.specialty.drainMult ? model.drain * model.specialty.drainMult : model.drain;
+            drainVal *= drainMult;
             let iqVal = model.iqOutput;
             if (model.specialty.iqMult) iqVal *= model.specialty.iqMult;
+            iqVal *= iqMult;
             return `<div class="active-model-chip" data-chip-tooltip="${model.specialty.desc}">
                 <span class="chip-name">${model.name}</span>
                 <span class="chip-stats"><span class="chip-drain">-${this.formatTps(drainVal)}</span> · <span class="chip-iq">+${this.formatTps(iqVal)}</span></span>

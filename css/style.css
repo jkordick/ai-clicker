@@ -808,6 +808,28 @@ textarea {
     box-shadow: var(--panel-border-green);
 }
 
+.shop-hint {
+    padding: 8px 10px;
+    margin-bottom: 8px;
+    background: rgba(255, 230, 0, 0.06);
+    border-left: 3px solid var(--yellow);
+    color: var(--text-dim);
+    font-family: 'Silkscreen', monospace;
+    font-size: 0.62rem;
+    text-align: center;
+}
+
+.shop-hint kbd {
+    display: inline-block;
+    padding: 1px 6px;
+    margin: 0 2px;
+    background: #222;
+    color: var(--yellow);
+    border: 1px solid #444;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 0.55rem;
+}
+
 .upgrade-card.locked {
     opacity: 0.4;
     filter: grayscale(0.4);
@@ -1369,6 +1391,20 @@ body.shift-held .building-card[data-cost-bulk="0"] {
     .tab-content {
         max-height: 52vh;
     }
+
+    /* Tip widget moves inline at narrower widths to avoid overlap */
+    .tip-widget {
+        position: relative;
+        top: auto;
+        right: auto;
+        max-width: none;
+        width: 100%;
+        order: -1;
+    }
+
+    #stats-bar {
+        flex-wrap: wrap;
+    }
 }
 
 /* Tablet / large phone landscape */
@@ -1461,7 +1497,7 @@ body.shift-held .building-card[data-cost-bulk="0"] {
     }
 
     #click-zone {
-        padding: 18px 12px 160px;
+        padding: 18px 12px 24px;
         min-height: 340px;
     }
 

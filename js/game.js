@@ -25,11 +25,8 @@ const Game = {
             // Reapply upgrades to rebuild computed multipliers (including modelSlots)
             this.reapplyUpgrades();
 
-            // Fix: trim active models to slot limit
-            const maxSlots = this.getModelSlots();
-            if (this.state.activeModels.length > maxSlots) {
-                this.state.activeModels = this.state.activeModels.slice(0, maxSlots);
-            }
+            // Iteratively trim active models if save exceeds available slots
+            this.normalizeActiveModels(null);
 
             // Handle offline progress
             if (saved._offlineSeconds && saved._offlineSeconds > 5) {
@@ -368,6 +365,7 @@ const Game = {
             if (this.state.activeModels.length > 1) {
                 this.state.activeModels = this.state.activeModels.filter(id => id !== modelId);
                 UI.log(`Deactivated: ${model.name}`, 'info');
+                this.normalizeActiveModels(modelId);
             } else {
                 UI.log(`Can't deactivate your only model! Activate another to swap.`, 'info');
             }
@@ -377,13 +375,39 @@ const Game = {
                 this.state.activeModels.push(modelId);
                 UI.log(`Activated: ${model.name}!`, 'purchase');
             } else {
-                const removed = this.state.activeModels.shift();
+                // Prefer swapping out a non-slot-provider to preserve capacity
+                const swapIdx = this.state.activeModels.findIndex(id => {
+                    const m = this.findModel(id);
+                    return !m || !m.specialty.slotBonus;
+                });
+                const idx = swapIdx >= 0 ? swapIdx : 0;
+                const removed = this.state.activeModels.splice(idx, 1)[0];
                 const removedModel = this.findModel(removed);
                 this.state.activeModels.push(modelId);
                 UI.log(`Swapped ${removedModel ? removedModel.name : 'model'} → ${model.name}`, 'purchase');
+                this.normalizeActiveModels(modelId);
             }
         }
         this.renderShop();
+    },
+
+    // Iteratively trim activeModels until length <= getModelSlots().
+    // Removes from the end, but never removes the protected (just-activated) model.
+    normalizeActiveModels(protectId) {
+        let safety = 16;
+        while (this.state.activeModels.length > this.getModelSlots() && safety-- > 0) {
+            // Drop the last non-protected model
+            const removeIdx = (() => {
+                for (let i = this.state.activeModels.length - 1; i >= 0; i--) {
+                    if (this.state.activeModels[i] !== protectId) return i;
+                }
+                return -1;
+            })();
+            if (removeIdx < 0) break;
+            const removed = this.state.activeModels.splice(removeIdx, 1)[0];
+            const removedModel = this.findModel(removed);
+            UI.log(`Auto-deactivated ${removedModel ? removedModel.name : 'a model'} (no slot)`, 'info');
+        }
     },
 
     findModel(modelId) {
