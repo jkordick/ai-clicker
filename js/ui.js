@@ -262,8 +262,8 @@ const UI = {
                 ${row('Current ASI threshold', fmt(Game.ASI_THRESHOLD) + ' IQ', 'gold')}
                 ${row('Available RP now', fmt(Game.calculatePrestigeGain()), 'gold')}
                 ${row('IQ for next RP', fmt(nextRPThreshold))}
-                ${row('Next prestige threshold', fmt(Game.ASI_THRESHOLD * 10) + ' IQ')}
-                ${formula('Threshold x10 per prestige; RP = floor(√(IQ / threshold))')}
+                ${row('Next prestige threshold', fmt(Game.ASI_THRESHOLD * 5) + ' IQ')}
+                ${formula('Threshold x5 per prestige; RP = floor(√(IQ / threshold))')}
             </div>
 
             <div class="stats-section session">
@@ -558,6 +558,7 @@ const UI = {
             const companyModels = company.models.map(model => {
                 const owned = state.ownedModels.includes(model.id);
                 const active = state.activeModels.includes(model.id);
+                const tierLocked = model.tier >= 6 && (state.asiAchieved || 0) < 1;
                 let cost = MODEL_TIER_COSTS[model.tier] || 0;
 
                 // Apply IQ cost reductions
@@ -570,7 +571,7 @@ const UI = {
                 cost = Math.floor(cost * (state.iqCostMultiplier || 1));
 
                 const canAfford = state.intelligence >= cost;
-                let cssClass = owned ? (active ? 'model-active' : 'model-owned') : (!canAfford ? 'cant-afford' : '');
+                let cssClass = owned ? (active ? 'model-active' : 'model-owned') : (tierLocked ? 'cant-afford' : (!canAfford ? 'cant-afford' : ''));
                 let actionText, actionClass;
                 if (active) {
                     actionText = '⏹ DEACTIVATE';
@@ -579,6 +580,9 @@ const UI = {
                     const slotsFull = state.activeModels.length >= Game.getModelSlots();
                     actionText = slotsFull ? '🔄 SWAP IN' : '▶ ACTIVATE';
                     actionClass = 'owned';
+                } else if (tierLocked) {
+                    actionText = '🔒 REQUIRES ASI PRESTIGE';
+                    actionClass = '';
                 } else {
                     actionText = `🧠 ${this.formatNumber(cost)}`;
                     actionClass = '';

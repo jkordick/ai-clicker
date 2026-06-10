@@ -179,13 +179,13 @@ const Game = {
         if (prestigeConfirm) prestigeConfirm.addEventListener('click', () => this.doPrestige());
     },
 
-    // ASI threshold escalates 10x per prestige.
-    // First prestige: 1M. Then 10M, 100M, 1B, 10B...
+    // ASI threshold escalates 5x per prestige.
+    // First prestige: 1M. Then 5M, 25M, 125M, 625M, 3.125B...
     // Halved by 'singularity-approach' research.
     ASI_THRESHOLD_BASE: 1_000_000,
     get ASI_THRESHOLD() {
         const tier = this.state.asiAchieved || 0;
-        let t = this.ASI_THRESHOLD_BASE * Math.pow(10, tier);
+        let t = this.ASI_THRESHOLD_BASE * Math.pow(5, tier);
         if (hasResearch(this.state, 'singularity-approach')) t /= 2;
         return t;
     },
@@ -203,7 +203,7 @@ const Game = {
         const newTotal = (this.state.researchPoints || 0) + gain;
         // After this prestige, asiAchieved goes up by 1, so the next threshold escalates
         const nextThreshold = this.ASI_THRESHOLD_BASE
-            * Math.pow(10, (this.state.asiAchieved || 0) + 1)
+            * Math.pow(5, (this.state.asiAchieved || 0) + 1)
             * (hasResearch(this.state, 'singularity-approach') ? 0.5 : 1);
         document.getElementById('prestige-iq-display').textContent = UI.formatNumber(this.state.intelligence);
         document.getElementById('prestige-rp-gain').textContent = gain;
@@ -574,6 +574,12 @@ const Game = {
         const model = this.findModel(modelId);
         if (!model) return;
         if (this.state.ownedModels.includes(modelId)) return;
+
+        // Tier 6 (frontier/ASI-era) models gated behind first prestige
+        if (model.tier >= 6 && (this.state.asiAchieved || 0) < 1) {
+            UI.log(`${model.name} requires ASI prestige to unlock.`, 'warning');
+            return;
+        }
 
         let cost = MODEL_TIER_COSTS[model.tier] || 0;
 

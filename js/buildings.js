@@ -115,9 +115,9 @@ const BUILDINGS = [
         name: 'AGI',
         icon: '🪞',
         description: '"It just asked who built it. And why. Should we be worried?"',
-        baseCost: 100_000_000_000,
+        baseCost: 500_000_000_000,
         baseTps: 10_000_000,
-        costMultiplier: 1.18,
+        costMultiplier: 1.15,
     },
 ];
 
