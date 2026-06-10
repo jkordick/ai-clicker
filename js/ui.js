@@ -85,6 +85,10 @@ const UI = {
                 document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
                 tab.classList.add('active');
                 document.getElementById(`tab-${tab.dataset.tab}`).classList.add('active');
+                // Stats tab is read-only and only updates on tick; render immediately on open
+                if (tab.dataset.tab === 'stats' && typeof Game !== 'undefined') {
+                    Game.renderStats();
+                }
             });
         });
     },
@@ -117,6 +121,13 @@ const UI = {
         // IQ rate
         this.elements.iqPerSec.textContent = `+${this.formatTps(iqps)}/s`;
 
+        // Warning: models active but no tokens to feed them
+        const iqWarn = document.getElementById('iq-warning');
+        if (iqWarn) {
+            const starving = drain > 0 && tokens < 1 && Game.state.activeModels.length > 0;
+            iqWarn.style.display = starving ? '' : 'none';
+        }
+
         // Net token flow indicator
         const net = tps - drain;
         const netEl = document.getElementById('token-net');
@@ -138,6 +149,123 @@ const UI = {
 
         // ASI progress + prestige availability
         this.updateAsiProgress();
+
+        // Stats panel — only update when its tab is visible
+        const statsTab = document.getElementById('tab-stats');
+        if (statsTab && statsTab.classList.contains('active')) {
+            this.renderStatsPanel(tps, iqps, drain);
+        }
+    },
+
+    renderStatsPanel(tps, iqps, drain) {
+        const panel = document.getElementById('stats-panel');
+        if (!panel) return;
+        const s = Game.state;
+        const st = s.stats;
+        const fmt = (n) => this.formatNumber(n);
+        const fmtRate = (n) => this.formatTps(n);
+        const pct = (n) => (n * 100).toFixed(1) + '%';
+        const x = (n) => n.toFixed(2) + '×';
+
+        // Derived numbers
+        const clickPower = Game.getClickPower();
+        const critChance = Game.getCritChance();
+        const critMult = Game.getCritMultiplier();
+        const observedCritRate = st.lifetimeClicks > 0
+            ? (st.totalCrits / st.lifetimeClicks) : 0;
+        const modelDrain = Game.calculateModelDrain();
+        const computeCost = Game.calculateComputeCost();
+        const drainMult = s.drainMultiplier || 1;
+        const researchMult = Game.getResearchMultiplier();
+        const slots = Game.getModelSlots();
+        const playtime = Game.formatDuration(st.totalTimePlayed || 0);
+        const session = Game.formatDuration((Date.now() - st.sessionStart) / 1000);
+        const nextRPThreshold = (() => {
+            const cur = Game.calculatePrestigeGain();
+            const next = cur + 1;
+            return next * next * Game.ASI_THRESHOLD;
+        })();
+
+        // Building count
+        let totalBuildings = 0;
+        for (const k in s.buildings) totalBuildings += s.buildings[k];
+
+        const row = (label, value, cls = '') =>
+            `<div class="stats-row"><span class="stats-label">${label}</span><span class="stats-value ${cls}">${value}</span></div>`;
+        const formula = (text) => `<div class="stats-formula">${text}</div>`;
+
+        panel.innerHTML = `
+            <div class="stats-section click-power">
+                <h3 class="stats-section-title">⚡ Click Power</h3>
+                ${row('Click power', fmt(clickPower), 'gold')}
+                ${row('Click multiplier', x(s.clickMultiplier), 'accent')}
+                ${row('Crit chance', pct(critChance), 'accent')}
+                ${row('Crit multiplier', x(critMult), 'accent')}
+                ${row('Total clicks', fmt(st.lifetimeClicks))}
+                ${row('Total crits', fmt(st.totalCrits))}
+                ${row('Observed crit rate', pct(observedCritRate))}
+                ${row('Tokens from crits', fmt(st.critTokensGained), 'positive')}
+            </div>
+
+            <div class="stats-section income">
+                <h3 class="stats-section-title">🪙 Income</h3>
+                ${row('Tokens / sec', '+' + fmtRate(tps), 'positive')}
+                ${row('Global multiplier', x(s.globalMultiplier), 'accent')}
+                ${row('Cost multiplier', x(s.costMultiplier), s.costMultiplier < 1 ? 'positive' : '')}
+                ${row('Current tokens', fmt(s.tokens), 'gold')}
+                ${row('Peak tokens', fmt(st.highestTokens))}
+                ${row('Peak TPS', '+' + fmt(st.highestTps) + '/s')}
+                ${row('Tokens earned (run)', fmt(s.totalTokens))}
+                ${row('Tokens earned (lifetime)', fmt(st.lifetimeTokens))}
+                ${row('Spent on buildings', fmt(st.tokensSpentBuildings), 'negative')}
+                ${row('Spent on upgrades', fmt(st.tokensSpentUpgrades), 'negative')}
+            </div>
+
+            <div class="stats-section intelligence">
+                <h3 class="stats-section-title">🧠 Intelligence</h3>
+                ${row('IQ / sec', '+' + fmtRate(iqps), 'accent')}
+                ${row('IQ multiplier', x(s.iqMultiplier), 'accent')}
+                ${row('Research multiplier', x(researchMult), researchMult > 1 ? 'positive' : '')}
+                ${formula(`+${(researchMult - 1) * 100 | 0}% from ${s.researchPoints || 0} RP × 25%`)}
+                ${row('Current IQ', fmt(s.intelligence), 'accent')}
+                ${row('Peak IQ', fmt(st.highestIntelligence))}
+                ${row('Peak IQ/s', '+' + fmt(st.highestIqps) + '/s')}
+                ${row('IQ earned (run)', fmt(s.totalIntelligence))}
+                ${row('IQ earned (lifetime)', fmt(st.lifetimeIntelligence))}
+                ${row('IQ spent on models', fmt(st.iqSpentModels), 'negative')}
+            </div>
+
+            <div class="stats-section drain">
+                <h3 class="stats-section-title">🔥 Drain Breakdown</h3>
+                ${row('Model drain', '-' + fmtRate(modelDrain), 'negative')}
+                ${row('Compute cost (5% TPS)', '-' + fmtRate(computeCost), 'negative')}
+                ${row('Total drain', '-' + fmtRate(drain), 'negative')}
+                ${row('Drain multiplier', x(drainMult), drainMult < 1 ? 'positive' : '')}
+                ${row('Net token flow', (tps - drain >= 0 ? '+' : '') + fmtRate(tps - drain),
+                    tps - drain >= 0 ? 'positive' : 'negative')}
+                ${row('Active models', `${s.activeModels.length} / ${slots}`)}
+            </div>
+
+            <div class="stats-section prestige">
+                <h3 class="stats-section-title">🌌 Prestige</h3>
+                ${row('Research Points', fmt(s.researchPoints || 0), 'accent')}
+                ${row('Times prestiged (ASI)', fmt(s.asiAchieved || 0))}
+                ${row('Available RP now', fmt(Game.calculatePrestigeGain()), 'gold')}
+                ${row('Next RP threshold', fmt(nextRPThreshold) + ' IQ')}
+                ${formula('floor(√(intelligence / 1B)) RP at prestige')}
+            </div>
+
+            <div class="stats-section session">
+                <h3 class="stats-section-title">📊 Session</h3>
+                ${row('Session time', session)}
+                ${row('Total playtime', playtime)}
+                ${row('Buildings owned', fmt(totalBuildings))}
+                ${row('Upgrades purchased', fmt(st.upgradesPurchased))}
+                ${row('Models acquired', fmt(st.modelsAcquired))}
+                ${row('Model swaps', fmt(st.modelsActivated))}
+                ${row('Model slots', `${s.activeModels.length} / ${slots}`)}
+            </div>
+        `;
     },
 
     updateAsiProgress() {

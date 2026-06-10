@@ -27,6 +27,22 @@ const Game = {
             if (this.state.researchPoints == null) this.state.researchPoints = 0;
             if (this.state.asiAchieved == null) this.state.asiAchieved = 0;
 
+            // Stats migration: ensure all stat fields exist
+            const defaultStats = getDefaultState().stats;
+            this.state.stats = { ...defaultStats, ...(this.state.stats || {}) };
+            // Backfill lifetime totals from existing run totals (old saves)
+            if (this.state.stats.lifetimeTokens < (this.state.totalTokens || 0)) {
+                this.state.stats.lifetimeTokens = this.state.totalTokens || 0;
+            }
+            if (this.state.stats.lifetimeIntelligence < (this.state.totalIntelligence || 0)) {
+                this.state.stats.lifetimeIntelligence = this.state.totalIntelligence || 0;
+            }
+            if (this.state.stats.lifetimeClicks < (this.state.totalClicks || 0)) {
+                this.state.stats.lifetimeClicks = this.state.totalClicks || 0;
+            }
+            // sessionStart always refreshes on load (resume = new session)
+            this.state.stats.sessionStart = Date.now();
+
             // Reapply upgrades to rebuild computed multipliers (including modelSlots)
             this.reapplyUpgrades();
 
@@ -182,10 +198,16 @@ const Game = {
         const newRP = (this.state.researchPoints || 0) + gain;
         const newASICount = (this.state.asiAchieved || 0) + 1;
 
-        // Reset state but keep RP and ASI count
+        // Preserve lifetime stats across prestige
+        const preservedStats = { ...this.state.stats };
+        preservedStats.prestigeCount = (preservedStats.prestigeCount || 0) + 1;
+        preservedStats.sessionStart = Date.now();
+
+        // Reset state but keep RP, ASI count, and lifetime stats
         const fresh = getDefaultState();
         fresh.researchPoints = newRP;
         fresh.asiAchieved = newASICount;
+        fresh.stats = preservedStats;
         this.state = fresh;
         this.save();
 
@@ -207,7 +229,13 @@ const Game = {
 
         this.state.tokens += power;
         this.state.totalTokens += power;
+        this.state.stats.lifetimeTokens += power;
         this.state.totalClicks++;
+        this.state.stats.lifetimeClicks++;
+        if (isCrit) {
+            this.state.stats.totalCrits++;
+            this.state.stats.critTokensGained += power;
+        }
 
         const containerRect = UI.elements.clickParticles.getBoundingClientRect();
         const x = e.clientX - containerRect.left;
@@ -350,6 +378,7 @@ const Game = {
         if (earned > 0) {
             this.state.tokens += earned;
             this.state.totalTokens += earned;
+            this.state.stats.lifetimeTokens += earned;
         }
 
         // Models consume tokens and produce intelligence
@@ -360,19 +389,27 @@ const Game = {
             this.state.tokens -= drain;
             this.state.intelligence += iqRate;
             this.state.totalIntelligence += iqRate;
+            this.state.stats.lifetimeIntelligence += iqRate;
         } else if (drain > 0 && this.state.tokens > 0) {
-            // Partial: produce IQ proportional to tokens available
             const ratio = this.state.tokens / drain;
-            this.state.intelligence += iqRate * ratio;
-            this.state.totalIntelligence += iqRate * ratio;
+            const partialIq = iqRate * ratio;
+            this.state.intelligence += partialIq;
+            this.state.totalIntelligence += partialIq;
+            this.state.stats.lifetimeIntelligence += partialIq;
             this.state.tokens = 0;
         }
-        // If no tokens, models idle (no IQ produced)
 
         this.state.lastTick = Date.now();
+        this.state.stats.totalTimePlayed += 0.1;
 
-        if (tps > this.state.stats.highestTps) {
-            this.state.stats.highestTps = tps;
+        const iqps = this.calculateIqPerSec();
+        if (tps > this.state.stats.highestTps) this.state.stats.highestTps = tps;
+        if (iqps > this.state.stats.highestIqps) this.state.stats.highestIqps = iqps;
+        if (this.state.intelligence > this.state.stats.highestIntelligence) {
+            this.state.stats.highestIntelligence = this.state.intelligence;
+        }
+        if (this.state.tokens > this.state.stats.highestTokens) {
+            this.state.stats.highestTokens = this.state.tokens;
         }
     },
 
@@ -415,6 +452,8 @@ const Game = {
 
         if (bought > 0) {
             const owned = this.state.buildings[id];
+            this.state.stats.tokensSpentBuildings += totalSpent;
+            this.state.stats.buildingsPurchased += bought;
             if (bought === 1) {
                 UI.log(`Built ${building.name} (#${owned})`, 'purchase');
             } else {
@@ -432,6 +471,8 @@ const Game = {
         if (this.state.tokens >= upgrade.cost) {
             this.state.tokens -= upgrade.cost;
             this.state.upgrades.push(id);
+            this.state.stats.tokensSpentUpgrades += upgrade.cost;
+            this.state.stats.upgradesPurchased++;
             this.applyUpgrade(upgrade);
             UI.log(`Unlocked: ${upgrade.name}!`, 'achievement');
             this.renderShop();
@@ -457,6 +498,8 @@ const Game = {
         if (this.state.intelligence >= cost) {
             this.state.intelligence -= cost;
             this.state.ownedModels.push(modelId);
+            this.state.stats.iqSpentModels += cost;
+            this.state.stats.modelsAcquired++;
             UI.log(`Acquired: ${model.name}! Activate it from the Models tab.`, 'purchase');
             this.renderShop();
         }
@@ -480,6 +523,7 @@ const Game = {
             // Activate — if slot available, just add. If full, swap out the oldest active.
             if (this.state.activeModels.length < this.getModelSlots()) {
                 this.state.activeModels.push(modelId);
+                this.state.stats.modelsActivated++;
                 UI.log(`Activated: ${model.name}!`, 'purchase');
             } else {
                 // Prefer swapping out a non-slot-provider to preserve capacity
@@ -491,6 +535,7 @@ const Game = {
                 const removed = this.state.activeModels.splice(idx, 1)[0];
                 const removedModel = this.findModel(removed);
                 this.state.activeModels.push(modelId);
+                this.state.stats.modelsActivated++;
                 UI.log(`Swapped ${removedModel ? removedModel.name : 'model'} → ${model.name}`, 'purchase');
                 this.normalizeActiveModels(modelId);
             }

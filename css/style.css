@@ -217,6 +217,26 @@ textarea {
     text-shadow: 1px 1px 0 var(--shadow);
 }
 
+.stat-warning {
+    font-family: 'Silkscreen', monospace;
+    font-size: 0.65rem;
+    color: #1a0f00;
+    background: var(--yellow, #ffcc00);
+    padding: 2px 6px;
+    margin-top: 3px;
+    border: 2px solid var(--shadow);
+    box-shadow: 2px 2px 0 var(--shadow);
+    text-shadow: none;
+    letter-spacing: 0.5px;
+    animation: warn-flash 1s infinite alternate;
+    user-select: none;
+}
+
+@keyframes warn-flash {
+    from { background: #ffcc00; }
+    to   { background: #ff8800; }
+}
+
 .stat-separator {
     font-family: 'Press Start 2P', monospace;
     font-size: 1.2rem;
@@ -1755,4 +1775,79 @@ body.shift-held .building-card[data-cost-bulk="0"] {
         white-space: normal;
         max-width: 220px;
     }
+}
+
+/* ===== STATS PANEL ===== */
+#stats-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.stats-section {
+    background: rgba(0, 0, 0, 0.4);
+    border: 2px solid var(--shadow);
+    border-left: 4px solid var(--cyan);
+    box-shadow: 3px 3px 0 var(--shadow);
+    padding: 10px 12px;
+}
+
+.stats-section.click-power   { border-left-color: #ffaa00; }
+.stats-section.income        { border-left-color: var(--cyan); }
+.stats-section.intelligence  { border-left-color: var(--magenta); }
+.stats-section.drain         { border-left-color: #ff5555; }
+.stats-section.prestige      { border-left-color: #aa66ff; }
+.stats-section.session       { border-left-color: var(--yellow); }
+
+.stats-section-title {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 0.7rem;
+    color: var(--cyan);
+    margin: 0 0 10px 0;
+    text-shadow: 2px 2px 0 var(--shadow);
+    letter-spacing: 1px;
+}
+
+.stats-section.click-power   .stats-section-title { color: #ffaa00; }
+.stats-section.intelligence  .stats-section-title { color: var(--magenta); }
+.stats-section.drain         .stats-section-title { color: #ff7777; }
+.stats-section.prestige      .stats-section-title { color: #c699ff; }
+.stats-section.session       .stats-section-title { color: var(--yellow); }
+
+.stats-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    padding: 4px 0;
+    border-bottom: 1px dashed rgba(255, 255, 255, 0.07);
+    font-family: 'Silkscreen', monospace;
+    font-size: 0.72rem;
+    gap: 12px;
+}
+
+.stats-row:last-child { border-bottom: none; }
+
+.stats-label {
+    color: var(--text-dim);
+    flex-shrink: 0;
+}
+
+.stats-value {
+    color: var(--text);
+    text-align: right;
+    word-break: break-all;
+    font-weight: bold;
+}
+
+.stats-value.positive { color: var(--green); }
+.stats-value.negative { color: #ff7070; }
+.stats-value.accent   { color: var(--magenta); }
+.stats-value.gold     { color: var(--yellow); }
+
+.stats-formula {
+    font-family: 'Silkscreen', monospace;
+    font-size: 0.6rem;
+    color: var(--text-muted);
+    padding: 2px 0;
+    font-style: italic;
 }
