@@ -90,7 +90,7 @@ const BUILDINGS = [
         description: '"VRAM goes brrrr"',
         baseCost: 100_000_000,
         baseTps: 50_000,
-        costMultiplier: 1.15,
+        costMultiplier: 1.14,
     },
     {
         id: 'data-center',
@@ -99,16 +99,16 @@ const BUILDINGS = [
         description: '"Located next to a river for cooling"',
         baseCost: 1_000_000_000,
         baseTps: 250_000,
-        costMultiplier: 1.15,
+        costMultiplier: 1.13,
     },
     {
-        id: 'agi-lab',
+        id: 'quantum-cluster',
         name: 'Quantum Cluster',
         icon: '⚛️',
         description: '"Schrödinger\'s inference — the answer is both right and wrong until you read it."',
         baseCost: 10_000_000_000,
         baseTps: 1_000_000,
-        costMultiplier: 1.15,
+        costMultiplier: 1.13,
     },
     {
         id: 'agi-system',
@@ -117,7 +117,7 @@ const BUILDINGS = [
         description: '"It just asked who built it. And why. Should we be worried?"',
         baseCost: 500_000_000_000,
         baseTps: 10_000_000,
-        costMultiplier: 1.15,
+        costMultiplier: 1.12,
     },
 ];
 

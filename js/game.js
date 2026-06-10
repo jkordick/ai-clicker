@@ -34,6 +34,22 @@ const Game = {
             }
             if (!this.state.researchUpgrades) this.state.researchUpgrades = {};
             if (this.state.asiAchieved == null) this.state.asiAchieved = 0;
+            if (!this.state.modelBursts) this.state.modelBursts = {};
+            if (!this.state.achievements) this.state.achievements = [];
+            if (this.state.achievementBonus == null) this.state.achievementBonus = 0;
+            if (!this.state.buyMode) this.state.buyMode = 1;
+
+            // MIGRATION: agi-lab → quantum-cluster building rename
+            if (this.state.buildings && this.state.buildings['agi-lab'] != null) {
+                this.state.buildings['quantum-cluster'] =
+                    (this.state.buildings['quantum-cluster'] || 0) + this.state.buildings['agi-lab'];
+                delete this.state.buildings['agi-lab'];
+            }
+            if (this.state.buildingMultipliers && this.state.buildingMultipliers['agi-lab'] != null) {
+                this.state.buildingMultipliers['quantum-cluster'] =
+                    this.state.buildingMultipliers['agi-lab'];
+                delete this.state.buildingMultipliers['agi-lab'];
+            }
 
             // Stats migration: ensure all stat fields exist
             const defaultStats = getDefaultState().stats;
@@ -54,19 +70,22 @@ const Game = {
             // Reapply upgrades to rebuild computed multipliers (including modelSlots)
             this.reapplyUpgrades();
 
+            // Reapply achievement rewards so achievementBonus is consistent
+            this.recomputeAchievementBonus();
+
             // Iteratively trim active models if save exceeds available slots
             this.normalizeActiveModels(null);
 
-            // Handle offline progress
+            // Handle offline progress (tokens + IQ via simulated chunks)
             if (saved._offlineSeconds && saved._offlineSeconds > 5) {
-                const offlineTps = this.calculateTps();
-                const offlineEarnings = offlineTps * Math.min(saved._offlineSeconds, 8 * 3600);
-                if (offlineEarnings > 0) {
-                    this.state.tokens += offlineEarnings;
-                    this.state.totalTokens += offlineEarnings;
+                const summary = this.simulateOffline(Math.min(saved._offlineSeconds, 8 * 3600));
+                if (summary.tokens > 0 || summary.iq > 0) {
                     setTimeout(() => {
                         const timeStr = this.formatDuration(saved._offlineSeconds);
-                        UI.log(`Welcome back! Earned ${UI.formatNumber(offlineEarnings)} tokens while away (${timeStr})`, 'event');
+                        UI.log(
+                            `Welcome back (${timeStr}): +${UI.formatNumber(summary.tokens)} tokens, +${UI.formatNumber(summary.iq)} IQ`,
+                            'event'
+                        );
                     }, 500);
                 }
             }
@@ -85,6 +104,52 @@ const Game = {
         } else {
             this.startGame();
         }
+    },
+
+    // Simulate offline progress in 1-second chunks using the same strict drain rule:
+    // drain pulls from PRE-chunk balance only; TPS earned this chunk builds buffer for next.
+    simulateOffline(seconds) {
+        const chunkSec = 1;
+        let elapsed = 0;
+        const beforeTokens = this.state.tokens;
+        const beforeIQ = this.state.intelligence;
+
+        const tps = this.calculateTpsRaw();
+        const drain = this.calculateDrain();
+        const iqRate = this.calculateIqPerSec();
+
+        while (elapsed < seconds) {
+            const dt = Math.min(chunkSec, seconds - elapsed);
+            const tokensBefore = this.state.tokens;
+            const earned = tps * dt;
+            const drainAmt = drain * dt;
+
+            // Always credit TPS into the buffer for next chunk
+            this.state.tokens += earned;
+
+            if (drainAmt > 0) {
+                if (tokensBefore >= drainAmt) {
+                    this.state.tokens -= drainAmt;
+                    this.state.intelligence += iqRate * dt;
+                } else if (tokensBefore > 0) {
+                    const ratio = tokensBefore / drainAmt;
+                    this.state.intelligence += iqRate * dt * ratio;
+                    this.state.tokens -= tokensBefore;
+                }
+                // else: nothing to drain, no IQ
+            }
+            elapsed += dt;
+        }
+
+        // Update totals
+        const earnedTokens = Math.max(0, this.state.tokens - beforeTokens);
+        const earnedIQ = Math.max(0, this.state.intelligence - beforeIQ);
+        this.state.totalTokens += earnedTokens;
+        this.state.totalIntelligence += earnedIQ;
+        this.state.stats.lifetimeTokens += earnedTokens;
+        this.state.stats.lifetimeIntelligence += earnedIQ;
+
+        return { tokens: earnedTokens, iq: earnedIQ };
     },
 
     showModelSelect() {
@@ -190,11 +255,12 @@ const Game = {
         return t;
     },
 
-    // Research Points gained = floor(sqrt(intelligence / threshold))
+    // Research Points gained: rewards overshooting the threshold.
+    // RP = floor((IQ / threshold) ^ 0.6 * 3). Cap at 999 to avoid silliness.
     calculatePrestigeGain() {
         const ratio = this.state.intelligence / this.ASI_THRESHOLD;
         if (ratio < 1) return 0;
-        return Math.floor(Math.sqrt(ratio));
+        return Math.min(999, Math.floor(Math.pow(ratio, 0.6) * 3));
     },
 
     openPrestigeModal() {
@@ -227,13 +293,20 @@ const Game = {
         // Preserve research upgrades (the whole point of RP)
         const preservedResearch = { ...(this.state.researchUpgrades || {}) };
 
-        // Persistent Knowledge research: keep highest-tier owned model
-        let keptModelId = null;
-        if (preservedResearch['persistent-knowledge'] && this.state.ownedModels.length > 0) {
-            let bestTier = -1;
-            for (const id of this.state.ownedModels) {
-                const m = this.findModel(id);
-                if (m && m.tier > bestTier) { bestTier = m.tier; keptModelId = id; }
+        // Persistent Knowledge research: keep top models by tier based on rank
+        // rank 1: top 1 model | rank 2: top 2 | rank 3: all currently active
+        const pkRank = preservedResearch['persistent-knowledge'] || 0;
+        let keptModelIds = [];
+        if (pkRank > 0 && this.state.ownedModels.length > 0) {
+            if (pkRank >= 3) {
+                keptModelIds = [...this.state.activeModels];
+            } else {
+                const sorted = [...this.state.ownedModels]
+                    .map(id => ({ id, tier: (this.findModel(id) || {}).tier || 0 }))
+                    .sort((a, b) => b.tier - a.tier)
+                    .slice(0, pkRank)
+                    .map(x => x.id);
+                keptModelIds = sorted;
             }
         }
 
@@ -244,17 +317,29 @@ const Game = {
         fresh.researchUpgrades = preservedResearch;
         fresh.asiAchieved = newASICount;
         fresh.stats = preservedStats;
+        fresh.achievements = this.state.achievements || [];
+        fresh.achievementBonus = this.state.achievementBonus || 0;
 
-        // Head Start research: 10K tokens to start
+        // Head Start research: 10K tokens + 100 IQ to start
         if (preservedResearch['head-start']) {
             fresh.tokens = 10000;
+            fresh.intelligence = 100;
         }
 
-        // Re-grant kept model so the user can re-pick or auto-activates
-        if (keptModelId) {
-            fresh.ownedModels = [keptModelId];
-            fresh.activeModels = [keptModelId];
-            fresh.startingModel = keptModelId;
+        // Institutional Memory: keep 10% IQ per rank (compounds with current run)
+        const imRank = preservedResearch['institutional-memory'] || 0;
+        if (imRank > 0) {
+            const carryFraction = Math.min(0.5, imRank * 0.1);
+            const carriedIQ = Math.floor(this.state.intelligence * carryFraction);
+            fresh.intelligence += carriedIQ;
+        }
+
+        // Re-grant kept models
+        if (keptModelIds.length > 0) {
+            fresh.ownedModels = [...keptModelIds];
+            // Active starts as the first kept model; others sit owned
+            fresh.activeModels = [keptModelIds[0]];
+            fresh.startingModel = keptModelIds[0];
         }
 
         this.state = fresh;
@@ -264,8 +349,8 @@ const Game = {
         UI.log(`🌌 ASI achieved! Gained ${gain} RP (total earned: ${newRPTotal})`, 'achievement');
         this.render();
 
-        // Only show model select if we don't already have one (Persistent Knowledge case)
-        if (!keptModelId) {
+        // Only show model select if we don't already have one
+        if (keptModelIds.length === 0) {
             this.showModelSelect();
         } else {
             this.startGame();
@@ -280,6 +365,9 @@ const Game = {
         const isCrit = Math.random() < critChance;
         if (isCrit) {
             power = Math.floor(power * this.getCritMultiplier());
+            // Crit burst: also award `critBurstSeconds` worth of TPS so crits matter in late game
+            const burstSeconds = 2 + (this.state.critBurstBonus || 0);
+            power += Math.floor(this.calculateTpsRaw() * burstSeconds);
         }
 
         this.state.tokens += power;
@@ -312,9 +400,10 @@ const Game = {
         return Math.min(chance, 1);
     },
 
-    // Base 3x crit multiplier, additive from upgrades + model specialties
+    // Base 3x crit multiplier, additive from upgrades + model specialties + research
     getCritMultiplier() {
         let mult = 3 + (this.state.critMultBonus || 0);
+        if (hasResearch(this.state, 'strawberry-memory')) mult += 1;
         for (const modelId of this.state.activeModels) {
             const model = this.findModel(modelId);
             if (model && model.specialty.critMult) {
@@ -341,10 +430,24 @@ const Game = {
         // Echo Chamber research: ×2 click power
         if (hasResearch(this.state, 'echo-chamber')) clickMult *= 2;
 
-        return Math.floor(baseClick * clickMult);
+        let total = baseClick * clickMult;
+
+        // Vibe Coding: each rank adds 1% of current TPS to click power
+        const vibeRank = getResearchRank(this.state, 'vibe-coding');
+        if (vibeRank > 0) {
+            total += this.calculateTpsRaw() * (vibeRank * 0.01);
+        }
+
+        return Math.floor(total);
     },
 
     calculateTps() {
+        return this.calculateTpsRaw();
+    },
+
+    // Raw TPS — used both as the displayed value AND inside getClickPower (Vibe Coding).
+    // Pure function of state, no RNG.
+    calculateTpsRaw() {
         let totalTps = 0;
         for (const building of BUILDINGS) {
             const owned = this.state.buildings[building.id] || 0;
@@ -370,7 +473,34 @@ const Game = {
             tpsMult *= 1 + (this.state.ownedModels.length * 0.01);
         }
 
-        return totalTps * tpsMult * this.getResearchMultiplier();
+        // Building synergy: +1% per milestone of any building (25/50/100/200/400)
+        tpsMult *= this.getSynergyMultiplier();
+
+        // Achievement reward stacking
+        tpsMult *= 1 + (this.state.achievementBonus || 0);
+
+        // Combined multiplier including research
+        let combined = tpsMult * this.getResearchMultiplier();
+
+        // Soft-cap: gentle log-curve once combined multiplier exceeds ×1000
+        if (combined > 1000) {
+            combined = 1000 + Math.log10(combined / 1000) * 1000;
+        }
+
+        return totalTps * combined;
+    },
+
+    // Each building reaches milestones at 25, 50, 100, 200, 400. Each milestone = +1% global.
+    SYNERGY_MILESTONES: [25, 50, 100, 200, 400],
+    getSynergyMultiplier() {
+        let bonus = 0;
+        for (const b of BUILDINGS) {
+            const owned = this.state.buildings[b.id] || 0;
+            for (const m of this.SYNERGY_MILESTONES) {
+                if (owned >= m) bonus += 0.01; else break;
+            }
+        }
+        return 1 + bonus;
     },
 
     // Each Research Point... no longer auto-grants. See Cognitive Bandwidth instead.
@@ -409,9 +539,11 @@ const Game = {
         return tps * rate;
     },
 
-    // Calculate total IQ output from all active models
+    // Calculate total IQ output from all active models — PURE, no RNG.
+    // Chaos bursts are rolled in tick() and stored in state.modelBursts.
     calculateIqPerSec() {
         let totalIq = 0;
+        const bursts = this.state.modelBursts || {};
         for (const modelId of this.state.activeModels) {
             const model = this.findModel(modelId);
             if (!model) continue;
@@ -419,8 +551,12 @@ const Game = {
             if (model.specialty.iqMult) {
                 iq *= model.specialty.iqMult;
             }
-            if (model.specialty.chaosMult && Math.random() < 0.02) {
-                iq *= model.specialty.chaosMult;
+            // Apply currently-active burst multiplier (1.0 = no burst)
+            if (model.specialty.chaosMult) {
+                const b = bursts[modelId];
+                if (b && b.untilTick > (this.state._tickCount || 0)) {
+                    iq *= b.mult;
+                }
             }
             totalIq += iq;
         }
@@ -441,6 +577,17 @@ const Game = {
     },
 
     tick() {
+        this.state._tickCount = (this.state._tickCount || 0) + 1;
+
+        // Roll chaos bursts every 10 ticks (~1/sec) for active chaos models
+        if (this.state._tickCount % 10 === 0) {
+            this.rollChaosBursts();
+        }
+
+        // Capture pre-tick token balance — STRICT drain pulls from this only.
+        // Tokens earned THIS tick can't be immediately drained; they only build the buffer.
+        const tokensBefore = this.state.tokens;
+
         // Generate tokens from tech stack (10 ticks/sec)
         const tps = this.calculateTps();
         const earned = tps / 10;
@@ -450,22 +597,26 @@ const Game = {
             this.state.stats.lifetimeTokens += earned;
         }
 
-        // Models consume tokens and produce intelligence
+        // Models consume tokens and produce intelligence — STRICT: drain from pre-tick balance.
         const drain = this.calculateDrain() / 10;
         const iqRate = this.calculateIqPerSec() / 10;
 
-        if (drain > 0 && this.state.tokens >= drain) {
-            this.state.tokens -= drain;
-            this.state.intelligence += iqRate;
-            this.state.totalIntelligence += iqRate;
-            this.state.stats.lifetimeIntelligence += iqRate;
-        } else if (drain > 0 && this.state.tokens > 0) {
-            const ratio = this.state.tokens / drain;
-            const partialIq = iqRate * ratio;
-            this.state.intelligence += partialIq;
-            this.state.totalIntelligence += partialIq;
-            this.state.stats.lifetimeIntelligence += partialIq;
-            this.state.tokens = 0;
+        if (drain > 0) {
+            if (tokensBefore >= drain) {
+                this.state.tokens -= drain;
+                this.state.intelligence += iqRate;
+                this.state.totalIntelligence += iqRate;
+                this.state.stats.lifetimeIntelligence += iqRate;
+            } else if (tokensBefore > 0) {
+                // Partial feed: only the fraction of drain the bank could cover
+                const ratio = tokensBefore / drain;
+                const partialIq = iqRate * ratio;
+                this.state.intelligence += partialIq;
+                this.state.totalIntelligence += partialIq;
+                this.state.stats.lifetimeIntelligence += partialIq;
+                this.state.tokens -= tokensBefore; // consume whatever was there
+            }
+            // else: tokensBefore == 0 → models starve this tick. No IQ.
         }
 
         this.state.lastTick = Date.now();
@@ -479,6 +630,32 @@ const Game = {
         }
         if (this.state.tokens > this.state.stats.highestTokens) {
             this.state.stats.highestTokens = this.state.tokens;
+        }
+
+        // Check achievements every ~1 second (every 10 ticks)
+        if (this.state._tickCount % 10 === 0) {
+            this.checkAchievements();
+        }
+    },
+
+    // Roll a chaos burst for each active chaos model. 2% chance per second.
+    // Burst lasts 10 ticks (~1s) so it's visible.
+    rollChaosBursts() {
+        if (!this.state.modelBursts) this.state.modelBursts = {};
+        const tickNow = this.state._tickCount || 0;
+        for (const modelId of this.state.activeModels) {
+            const model = this.findModel(modelId);
+            if (!model || !model.specialty.chaosMult) continue;
+            const current = this.state.modelBursts[modelId];
+            if (current && current.untilTick > tickNow) continue; // already bursting
+            if (Math.random() < 0.20) { // 20% per second per chaos model = more visible
+                this.state.modelBursts[modelId] = {
+                    mult: model.specialty.chaosMult,
+                    untilTick: tickNow + 10, // ~1 sec
+                };
+                UI.log(`💥 ${model.name}: chaos burst! ${model.specialty.chaosMult}× IQ for 1s`, 'event');
+                UI.flashModelChip(modelId);
+            }
         }
     },
 
@@ -527,9 +704,12 @@ const Game = {
         const building = BUILDINGS.find(b => b.id === id);
         if (!building) return;
 
+        const isMax = quantity === 'max';
+        const limit = isMax ? 10000 : quantity;
+
         let bought = 0;
         let totalSpent = 0;
-        for (let i = 0; i < quantity; i++) {
+        for (let i = 0; i < limit; i++) {
             const owned = this.state.buildings[id] || 0;
             let cost = getBuildingCost(building, owned);
             cost = Math.floor(cost * this.state.costMultiplier);
@@ -622,35 +802,23 @@ const Game = {
                 UI.log(`Can't deactivate your only model! Activate another to swap.`, 'info');
             }
         } else {
-            // Activate — if slot available, just add. If full, swap out the oldest active.
+            // Activate — require a free slot. UI prevents reaching here when full.
             if (this.state.activeModels.length < this.getModelSlots()) {
                 this.state.activeModels.push(modelId);
                 this.state.stats.modelsActivated++;
                 UI.log(`Activated: ${model.name}!`, 'purchase');
             } else {
-                // Prefer swapping out a non-slot-provider to preserve capacity
-                const swapIdx = this.state.activeModels.findIndex(id => {
-                    const m = this.findModel(id);
-                    return !m || !m.specialty.slotBonus;
-                });
-                const idx = swapIdx >= 0 ? swapIdx : 0;
-                const removed = this.state.activeModels.splice(idx, 1)[0];
-                const removedModel = this.findModel(removed);
-                this.state.activeModels.push(modelId);
-                this.state.stats.modelsActivated++;
-                UI.log(`Swapped ${removedModel ? removedModel.name : 'model'} → ${model.name}`, 'purchase');
-                this.normalizeActiveModels(modelId);
+                UI.log(`Slots full! Deactivate a model first.`, 'warning');
             }
         }
         this.renderShop();
     },
 
     // Iteratively trim activeModels until length <= getModelSlots().
-    // Removes from the end, but never removes the protected (just-activated) model.
+    // Only ever needed after slot count drops (e.g. swapping out a slot-bonus model
+    // from the deactivate path). Removes from the end, never the protected model.
     normalizeActiveModels(protectId) {
-        let safety = 16;
-        while (this.state.activeModels.length > this.getModelSlots() && safety-- > 0) {
-            // Drop the last non-protected model
+        while (this.state.activeModels.length > this.getModelSlots()) {
             const removeIdx = (() => {
                 for (let i = this.state.activeModels.length - 1; i >= 0; i--) {
                     if (this.state.activeModels[i] !== protectId) return i;
@@ -744,6 +912,39 @@ const Game = {
         if (seconds < 3600) return `${Math.floor(seconds / 60)}m`;
         if (seconds < 86400) return `${Math.floor(seconds / 3600)}h ${Math.floor((seconds % 3600) / 60)}m`;
         return `${Math.floor(seconds / 86400)}d ${Math.floor((seconds % 86400) / 3600)}h`;
+    },
+
+    // -- Achievements ---------------------------------------------------------
+    // Each unlocked achievement grants +1% global multiplier (achievementBonus).
+    checkAchievements() {
+        const st = this.state;
+        if (!st.achievements) st.achievements = [];
+        let newlyUnlocked = [];
+        for (const ach of ACHIEVEMENTS) {
+            if (st.achievements.includes(ach.id)) continue;
+            try {
+                if (ach.check(st, this)) {
+                    st.achievements.push(ach.id);
+                    newlyUnlocked.push(ach);
+                }
+            } catch (_) { /* ignore broken checks */ }
+        }
+        if (newlyUnlocked.length > 0) {
+            for (const ach of newlyUnlocked) {
+                UI.log(`🏆 Achievement: ${ach.name} — ${ach.desc} (+1% global)`, 'achievement');
+            }
+            this.recomputeAchievementBonus();
+        }
+    },
+
+    recomputeAchievementBonus() {
+        const count = (this.state.achievements || []).length;
+        this.state.achievementBonus = count * 0.01;
+    },
+
+    setBuyMode(mode) {
+        this.state.buyMode = mode;
+        this.renderShop();
     },
 };
 

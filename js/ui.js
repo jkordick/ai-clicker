@@ -33,7 +33,7 @@ const UI = {
         '⚡ Hold SHIFT and click a Tech Stack item to buy 10x at once.',
         '💥 5% of your clicks crit for 3x tokens! Boost it with Beam Search and Strawberry.',
         '🤖 Hover over an active model in the top bar to see its specialty perk.',
-        '🔄 Slots full? Clicking ACTIVATE on a new model SWAPS it in for the first active one.',
+        '🔄 Slots full? Deactivate a current model to free a slot — no more silent swaps.',
         '💧 If drain exceeds earnings, your tokens deplete and IQ production slows to a crawl.',
         '🧠 Spend Intelligence on better models — each tier multiplies your IQ generation.',
         '📦 Two upgrades unlock extra model slots: Parallel Inference and Model Orchestration.',
@@ -52,7 +52,9 @@ const UI = {
         '🌌 Reach the ASI threshold (starts at 1M, x5 per prestige) to earn Research Points.',
         '🌌 Each prestige raises the bar x5: 1M → 5M → 25M → 125M... compound your RP wisely.',
         '🔬 Research Points spent in the Research Lab unlock permanent perks that survive prestige.',
-        '🧠 Cognitive Bandwidth is the bread and butter — buy 10 ranks for a 350% TPS & IQ boost.',
+        '🧠 Cognitive Bandwidth is the bread and butter — buy 10 ranks for a 250% TPS & IQ boost.',
+        '🌊 New: Vibe Coding adds % of TPS to every click — keeps clicks relevant in late game.',
+        '🏆 Achievements stack a permanent +1% global multiplier each. Free progress!',
         '🍓 Strawberry Memory permanently adds +10% crit chance for just 1 RP.',
         '💾 Persistent Knowledge keeps your highest-tier model across prestige.',
         '⚛️ Quantum Cluster is the top tech-stack tier; ASI sits beyond it as the prestige goal.',
@@ -102,6 +104,45 @@ const UI = {
                 }
             });
         });
+
+        // Buy-mode buttons
+        const group = document.getElementById('buy-mode-group');
+        if (group) {
+            group.querySelectorAll('.buy-mode-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const mode = btn.dataset.mode === 'max' ? 'max' : parseInt(btn.dataset.mode, 10);
+                    Game.setBuyMode(mode);
+                    this.updateBuyModeButtons();
+                });
+            });
+            this.updateBuyModeButtons();
+        }
+    },
+
+    updateBuyModeButtons() {
+        const group = document.getElementById('buy-mode-group');
+        if (!group) return;
+        const mode = (Game.state && Game.state.buyMode) || 1;
+        group.querySelectorAll('.buy-mode-btn').forEach(btn => {
+            const m = btn.dataset.mode === 'max' ? 'max' : parseInt(btn.dataset.mode, 10);
+            btn.classList.toggle('active', m === mode);
+        });
+    },
+
+    // Briefly flash an active model chip (chaos burst feedback)
+    flashModelChip(modelId) {
+        const bar = document.getElementById('active-models-bar');
+        if (!bar) return;
+        const chips = bar.querySelectorAll('.active-model-chip');
+        chips.forEach(chip => {
+            if (chip.dataset.modelId === modelId || chip.querySelector('.chip-name')?.textContent === (Game.findModel(modelId) || {}).name) {
+                chip.classList.remove('burst');
+                void chip.offsetWidth;
+                chip.classList.add('burst');
+                setTimeout(() => chip.classList.remove('burst'), 1100);
+            }
+        });
     },
 
     // Format numbers nicely
@@ -143,10 +184,11 @@ const UI = {
         // IQ rate
         this.elements.iqPerSec.textContent = `+${this.formatTps(iqps)}/s`;
 
-        // Warning: models active but no tokens to feed them
+        // Warning: bank can't cover one tick of drain → models will skip ticks (real starvation)
         const iqWarn = document.getElementById('iq-warning');
         if (iqWarn) {
-            const starving = drain > 0 && tokens < 1 && Game.state.activeModels.length > 0;
+            const tickDrain = drain / 10; // drain per tick (100ms)
+            const starving = drain > 0 && tokens < tickDrain && Game.state.activeModels.length > 0;
             iqWarn.style.display = starving ? '' : 'none';
         }
 
@@ -203,10 +245,18 @@ const UI = {
         const playtime = Game.formatDuration(st.totalTimePlayed || 0);
         const session = Game.formatDuration((Date.now() - st.sessionStart) / 1000);
         const nextRPThreshold = (() => {
+            // Inverse of floor((iq/threshold)^0.6 * 3): solve for IQ needed for (current RP + 1)
             const cur = Game.calculatePrestigeGain();
             const next = cur + 1;
-            return next * next * Game.ASI_THRESHOLD;
+            const ratio = Math.pow(next / 3, 1 / 0.6);
+            return ratio * Game.ASI_THRESHOLD;
         })();
+
+        // Achievements
+        const achList = (typeof ACHIEVEMENTS !== 'undefined') ? ACHIEVEMENTS : [];
+        const achUnlocked = (s.achievements || []).length;
+        const achTotal = achList.length;
+        const achBonus = s.achievementBonus || 0;
 
         // Building count
         let totalBuildings = 0;
@@ -277,7 +327,22 @@ const UI = {
                 ${row('Available RP now', fmt(Game.calculatePrestigeGain()), 'gold')}
                 ${row('IQ for next RP', fmt(nextRPThreshold))}
                 ${row('Next prestige threshold', fmt(Game.ASI_THRESHOLD * 5) + ' IQ')}
-                ${formula('Threshold x5 per prestige; RP = floor(√(IQ / threshold))')}
+                ${formula('Threshold x5 per prestige; RP = floor((IQ / threshold)^0.6 × 3)')}
+            </div>
+
+            <div class="stats-section achievements">
+                <h3 class="stats-section-title">🏆 Achievements (${achUnlocked} / ${achTotal})</h3>
+                ${row('Achievement bonus', '+' + (achBonus * 100).toFixed(0) + '% global', achBonus > 0 ? 'positive' : '')}
+                <div class="achievements-grid">
+                    ${achList.map(a => {
+                        const got = (s.achievements || []).includes(a.id);
+                        return `<div class="achievement-row ${got ? 'unlocked' : 'locked'}" title="${a.desc}">
+                            <span class="achievement-icon">${got ? '🏆' : '🔒'}</span>
+                            <span class="achievement-name">${got ? a.name : '???'}</span>
+                            <span class="achievement-desc">${got ? a.desc : '???'}</span>
+                        </div>`;
+                    }).join('')}
+                </div>
             </div>
 
             <div class="stats-section session">
@@ -355,7 +420,7 @@ const UI = {
             let iqVal = model.iqOutput;
             if (model.specialty.iqMult) iqVal *= model.specialty.iqMult;
             iqVal *= iqMult;
-            return `<div class="active-model-chip" data-chip-tooltip="${model.specialty.desc}">
+            return `<div class="active-model-chip" data-model-id="${modelId}" data-chip-tooltip="${model.specialty.desc}">
                 <span class="chip-name">${model.name}</span>
                 <span class="chip-stats"><span class="chip-drain">-${this.formatTps(drainVal)}</span> · <span class="chip-iq">+${this.formatTps(iqVal)}</span></span>
             </div>`;
@@ -417,7 +482,10 @@ const UI = {
         this.elements.buildingsList.querySelectorAll('.building-card').forEach(card => {
             card.addEventListener('click', (e) => {
                 const id = card.dataset.buildingId;
-                onBuy(id, e.shiftKey ? 10 : 1);
+                const mode = (Game.state && Game.state.buyMode) || 1;
+                // Shift still does 10x (legacy). Otherwise use buyMode.
+                const qty = e.shiftKey ? 10 : mode;
+                onBuy(id, qty);
             });
         });
     },
@@ -585,15 +653,16 @@ const UI = {
                 cost = Math.floor(cost * (state.iqCostMultiplier || 1));
 
                 const canAfford = state.intelligence >= cost;
+                const slotsFull = state.activeModels.length >= Game.getModelSlots();
                 let cssClass = owned ? (active ? 'model-active' : 'model-owned') : (tierLocked ? 'cant-afford' : (!canAfford ? 'cant-afford' : ''));
+                if (owned && !active && slotsFull) cssClass += ' slots-full';
                 let actionText, actionClass;
                 if (active) {
                     actionText = '⏹ DEACTIVATE';
                     actionClass = 'active';
                 } else if (owned) {
-                    const slotsFull = state.activeModels.length >= Game.getModelSlots();
-                    actionText = slotsFull ? '🔄 SWAP IN' : '▶ ACTIVATE';
-                    actionClass = 'owned';
+                    actionText = slotsFull ? '🔒 SLOTS FULL' : '▶ ACTIVATE';
+                    actionClass = slotsFull ? 'disabled' : 'owned';
                 } else if (tierLocked) {
                     actionText = '🔒 REQUIRES ASI PRESTIGE';
                     actionClass = '';
@@ -631,6 +700,11 @@ const UI = {
             card.addEventListener('click', () => {
                 const id = card.dataset.modelId;
                 if (state.ownedModels.includes(id)) {
+                    // If slots full and not currently active, refuse (clear messaging)
+                    if (!state.activeModels.includes(id) && state.activeModels.length >= Game.getModelSlots()) {
+                        UI.log('Slots full — deactivate a model first.', 'warning');
+                        return;
+                    }
                     onActivate(id);
                 } else {
                     onBuy(id);
