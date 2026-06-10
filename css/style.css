@@ -292,14 +292,6 @@ textarea {
     opacity: 0;
 }
 
-@media (max-width: 900px) {
-    .tip-widget {
-        position: static;
-        max-width: none;
-        margin: 0 auto 8px;
-    }
-}
-
 /* Active Models Bar in Stats */
 .stat-group-models {
     min-width: 140px;
@@ -1366,10 +1358,6 @@ body.shift-held .building-card[data-cost-bulk="0"] {
 }
 
 @media (max-width: 1180px) {
-    #stats-bar {
-        grid-template-columns: repeat(3, minmax(0, 1fr));
-    }
-
     #main-area {
         grid-template-columns: 1fr;
     }
@@ -1383,56 +1371,154 @@ body.shift-held .building-card[data-cost-bulk="0"] {
     }
 }
 
+/* Tablet / large phone landscape */
+@media (max-width: 900px) {
+    #stats-bar {
+        flex-wrap: wrap;
+        gap: 8px;
+        padding: 10px;
+    }
+
+    .stat-separator {
+        display: none;
+    }
+
+    .stat-group {
+        flex: 1 1 calc(50% - 8px);
+        min-width: 0;
+        padding: 8px 12px;
+    }
+
+    .stat-group-models {
+        flex-basis: 100%;
+    }
+
+    /* Tip widget moves inline to avoid overlap */
+    .tip-widget {
+        position: relative;
+        top: auto;
+        right: auto;
+        max-width: none;
+        width: 100%;
+        order: -1;
+    }
+}
+
+/* Mobile portrait */
 @media (max-width: 768px) {
+    html, body {
+        overflow-y: auto;
+    }
+
     body {
         font-size: 12px;
     }
 
+    #game-container {
+        height: auto;
+        max-height: none;
+        min-height: 100vh;
+        overflow: visible;
+    }
+
     #stats-bar {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 10px;
-        padding: 12px;
+        position: relative;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 8px;
+        padding: 10px;
+    }
+
+    .stat-group {
+        flex: 1 1 100%;
+        width: 100%;
+    }
+
+    .stat-separator {
+        display: none;
+    }
+
+    /* Tip widget becomes inline */
+    .tip-widget {
+        position: relative;
+        top: auto;
+        right: auto;
+        max-width: none;
+        width: 100%;
+        order: -1;
+    }
+
+    /* Stat tooltips: position relative to bar (avoid clipping) */
+    .stat-group[data-tooltip]::before {
+        width: min(280px, 90vw);
+        font-size: 0.6rem;
     }
 
     #main-area {
         padding: 12px;
         gap: 12px;
+        grid-template-columns: 1fr;
     }
 
     #click-zone {
-        padding: 22px 14px 170px;
-        min-height: 380px;
+        padding: 18px 12px 160px;
+        min-height: 340px;
     }
 
     #click-button {
-        width: 190px;
-        min-height: 190px;
+        width: 170px;
+        min-height: 170px;
+    }
+
+    #shop-panel {
+        min-height: 60vh;
     }
 
     .shop-tabs {
-        gap: 8px;
-        padding: 12px;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 6px;
+        padding: 10px;
     }
 
     .tab {
-        min-height: 46px;
-        font-size: 0.48rem;
+        min-height: 42px;
+        font-size: 0.44rem;
+        padding: 6px;
     }
 
-    .building-card,
-    .upgrade-card {
-        align-items: flex-start;
+    .tab-content {
+        max-height: none;
     }
 
     .building-card,
     .upgrade-card,
     .model-card {
-        padding: 12px;
+        padding: 10px;
     }
 
     .building-right,
     .upgrade-cost {
-        min-width: 82px;
+        min-width: 78px;
+    }
+
+    /* Event log: shrink and unstick from bottom */
+    #event-log {
+        position: relative;
+        left: auto;
+        right: auto;
+        bottom: auto;
+        max-height: 110px;
+        margin-top: 12px;
+    }
+
+    /* Active models chip: wrap cleanly */
+    .active-model-chip {
+        font-size: 0.5rem;
+        padding: 3px 6px;
+    }
+
+    .active-model-chip .chip-name {
+        max-width: 120px;
     }
 
     #game-footer {
@@ -1442,6 +1528,7 @@ body.shift-held .building-card[data-cost-bulk="0"] {
     #last-save {
         width: 100%;
         margin-left: 0;
+        text-align: center;
     }
 
     #model-select-grid {
@@ -1449,21 +1536,18 @@ body.shift-held .building-card[data-cost-bulk="0"] {
     }
 }
 
+/* Small mobile */
 @media (max-width: 560px) {
-    #stats-bar {
-        grid-template-columns: 1fr;
-    }
-
-    .stat-label {
-        font-size: 0.55rem;
-    }
-
-    .stat-value {
-        font-size: 0.9rem;
+    .stat-group .stat-value {
+        font-size: 1rem;
     }
 
     .shop-tabs {
-        grid-template-columns: 1fr;
+        grid-template-columns: repeat(3, 1fr);
+    }
+
+    .tab {
+        font-size: 0.42rem;
     }
 
     .building-card,
@@ -1494,5 +1578,11 @@ body.shift-held .building-card[data-cost-bulk="0"] {
 
     .modal-title {
         font-size: 0.82rem;
+    }
+
+    /* Tooltip below chips: keep on-screen */
+    .active-model-chip[data-chip-tooltip]::after {
+        white-space: normal;
+        max-width: 220px;
     }
 }
