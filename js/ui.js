@@ -23,6 +23,51 @@ const UI = {
 
         this.setupTabs();
         this.setupShiftTracker();
+        this.setupTipsRotation();
+    },
+
+    TIPS: [
+        '⚡ Hold SHIFT and click a Tech Stack item to buy 10x at once.',
+        '🤖 Hover over an active model in the top bar to see its specialty perk.',
+        '🔄 Slots full? Clicking ACTIVATE on a new model SWAPS it in for the first active one.',
+        '💧 If drain exceeds earnings, your tokens deplete and IQ production slows to a crawl.',
+        '🧠 Spend Intelligence on better models — each tier multiplies your IQ generation.',
+        '📦 Two upgrades unlock extra model slots: Parallel Inference and Model Orchestration.',
+        '🎯 Different models specialize: some boost TPS, click power, or reduce drain.',
+        '💾 Your progress auto-saves every 30 seconds and when you close the tab.',
+        '🌳 Chain-of-Thought, Knowledge Distillation, and Recursive Self-Improvement multiply IQ gain.',
+        '📦 INT8 Quantization and Speculative Decoding reduce all model drain.',
+        '🪙 Click the brain to manually generate tokens — useful in the early game.',
+        '🏗️ Buildings stack: each unit adds to your tokens-per-second.',
+        '🔒 Locked upgrades show their requirements — keep building to unlock them.',
+        '🎲 Gronk models are chaotic: random IQ bursts make output unpredictable.',
+        '💡 The Tech Stack tab is where you grow your passive token income.',
+        '⬆️ Higher-tier models cost more IQ but produce vastly more — invest in upgrades.',
+        '🎼 Run multiple models with different specialties to stack their bonuses.',
+        '👁️ Hover any stat in the top bar for an explanation of what it does.',
+    ],
+
+    setupTipsRotation() {
+        const tipText = document.getElementById('tip-text');
+        if (!tipText) return;
+
+        let lastIdx = -1;
+        const showRandomTip = () => {
+            let idx;
+            do { idx = Math.floor(Math.random() * this.TIPS.length); }
+            while (idx === lastIdx && this.TIPS.length > 1);
+            lastIdx = idx;
+
+            tipText.classList.add('fading');
+            setTimeout(() => {
+                tipText.textContent = this.TIPS[idx];
+                tipText.classList.remove('fading');
+            }, 400);
+        };
+
+        // Show first tip immediately (no fade)
+        tipText.textContent = this.TIPS[Math.floor(Math.random() * this.TIPS.length)];
+        setInterval(showRandomTip, 60_000);
     },
 
     setupShiftTracker() {
