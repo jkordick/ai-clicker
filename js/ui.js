@@ -46,7 +46,7 @@ const UI = {
         '⬆️ Higher-tier models cost more IQ but produce vastly more — invest in upgrades.',
         '🎼 Run multiple models with different specialties to stack their bonuses.',
         '👁️ Hover any stat in the top bar for an explanation of what it does.',
-        '🌌 Reach 1 BILLION Intelligence to prestige into ASI and earn Research Points.',
+        '🌌 Reach 1 MILLION Intelligence to prestige into ASI and earn Research Points.',
         '🔬 Research Points spent in the Research Lab unlock permanent perks that survive prestige.',
         '🧠 Cognitive Bandwidth is the bread and butter — buy 10 ranks for a 350% TPS & IQ boost.',
         '🍓 Strawberry Memory permanently adds +10% crit chance for just 1 RP.',

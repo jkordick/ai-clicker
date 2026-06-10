@@ -179,8 +179,8 @@ const Game = {
         if (prestigeConfirm) prestigeConfirm.addEventListener('click', () => this.doPrestige());
     },
 
-    // ASI threshold = 1 billion intelligence (halved by 'singularity-approach' research)
-    ASI_THRESHOLD_BASE: 1_000_000_000,
+    // ASI threshold = 1 million intelligence (halved by 'singularity-approach' research)
+    ASI_THRESHOLD_BASE: 1_000_000,
     get ASI_THRESHOLD() {
         return hasResearch(this.state, 'singularity-approach')
             ? this.ASI_THRESHOLD_BASE / 2

@@ -93,7 +93,7 @@ const RESEARCH_UPGRADES = [
         id: 'singularity-approach',
         name: 'Singularity Approach',
         icon: '🌀',
-        description: 'ASI threshold halved (1B → 500M IQ). Prestige twice as fast forever.',
+        description: 'ASI threshold halved (1M → 500K IQ). Prestige twice as fast forever.',
         cost: () => 10,
         maxRank: 1,
         tier: 3,
