@@ -516,6 +516,8 @@ textarea {
 .counter-pop {
     position: absolute;
     pointer-events: none;
+    user-select: none;
+    -webkit-user-select: none;
     font-family: 'Press Start 2P', monospace;
     color: var(--yellow);
     text-shadow: 2px 2px 0 var(--shadow), 0 0 8px rgba(255, 230, 0, 0.2);
