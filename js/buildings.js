@@ -103,9 +103,9 @@ const BUILDINGS = [
     },
     {
         id: 'agi-lab',
-        name: 'AGI',
-        icon: '🧪',
-        description: '"We\'re not sure what it\'s doing anymore"',
+        name: 'Quantum Cluster',
+        icon: '⚛️',
+        description: '"Schrödinger\'s inference — the answer is both right and wrong until you read it."',
         baseCost: 10_000_000_000,
         baseTps: 1_000_000,
         costMultiplier: 1.15,
