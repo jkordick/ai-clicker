@@ -19,6 +19,9 @@ const UI = {
             saveBtn: document.getElementById('save-btn'),
             resetBtn: document.getElementById('reset-btn'),
             lastSave: document.getElementById('last-save'),
+            clickPowerDisplay: document.getElementById('click-power-display'),
+            autoTpsDisplay: document.getElementById('auto-tps-display'),
+            clickChipAuto: document.getElementById('click-chip-auto'),
         };
 
         this.setupTabs();
@@ -46,8 +49,8 @@ const UI = {
         '⬆️ Higher-tier models cost more IQ but produce vastly more — invest in upgrades.',
         '🎼 Run multiple models with different specialties to stack their bonuses.',
         '👁️ Hover any stat in the top bar for an explanation of what it does.',
-        '🌌 Reach the ASI threshold (starts at 1M, x10 per prestige) to earn Research Points.',
-        '🌌 Each prestige raises the bar x10: 1M → 10M → 100M → 1B... compound your RP wisely.',
+        '🌌 Reach the ASI threshold (starts at 1M, x5 per prestige) to earn Research Points.',
+        '🌌 Each prestige raises the bar x5: 1M → 5M → 25M → 125M... compound your RP wisely.',
         '🔬 Research Points spent in the Research Lab unlock permanent perks that survive prestige.',
         '🧠 Cognitive Bandwidth is the bread and butter — buy 10 ranks for a 350% TPS & IQ boost.',
         '🍓 Strawberry Memory permanently adds +10% crit chance for just 1 RP.',
@@ -125,6 +128,17 @@ const UI = {
         // Token detail: +earn / -drain
         this.elements.tps.textContent = `+${this.formatTps(tps)}`;
         this.elements.drainPerSec.textContent = `-${this.formatTps(drain)}`;
+
+        // Click zone chips: per-click power + auto TPS (pulse when producing)
+        if (this.elements.clickPowerDisplay) {
+            this.elements.clickPowerDisplay.textContent = `+${this.formatNumber(Game.getClickPower())}`;
+        }
+        if (this.elements.autoTpsDisplay) {
+            this.elements.autoTpsDisplay.textContent = `+${this.formatTps(tps)}/s`;
+        }
+        if (this.elements.clickChipAuto) {
+            this.elements.clickChipAuto.classList.toggle('active', tps > 0);
+        }
 
         // IQ rate
         this.elements.iqPerSec.textContent = `+${this.formatTps(iqps)}/s`;

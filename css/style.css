@@ -771,6 +771,59 @@ textarea {
     pointer-events: none;
 }
 
+#click-meta {
+    display: flex;
+    gap: 10px;
+    margin-top: 18px;
+    flex-wrap: wrap;
+    justify-content: center;
+    z-index: 2;
+    position: relative;
+}
+
+.click-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    background: #101010;
+    border: var(--pixel) solid #303030;
+    box-shadow: 2px 2px 0 var(--shadow);
+    font-family: 'Press Start 2P', monospace;
+    font-size: 0.55rem;
+    color: var(--text-dim);
+    text-transform: uppercase;
+}
+
+.click-chip-icon {
+    font-size: 0.9rem;
+}
+
+.click-chip-label {
+    color: var(--text-dim);
+    opacity: 0.75;
+}
+
+.click-chip-value {
+    color: var(--neon-green);
+    font-size: 0.7rem;
+    text-shadow: 2px 2px 0 var(--shadow);
+}
+
+#click-chip-power .click-chip-value {
+    color: var(--cyan);
+}
+
+#click-chip-auto.active {
+    border-color: var(--neon-green);
+    animation: chip-pulse 1s steps(2) infinite;
+}
+
+@keyframes chip-pulse {
+    0%, 100% { box-shadow: 2px 2px 0 var(--shadow); }
+    50% { box-shadow: 2px 2px 0 var(--shadow), 0 0 12px rgba(57, 255, 20, 0.5); }
+}
+
 .particle,
 .counter-pop {
     position: absolute;

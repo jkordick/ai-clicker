@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>🪙 Token Clicker — Build Your AI Empire</title>
-    <link rel="stylesheet" href="css/style.css?v=13">
+    <link rel="stylesheet" href="css/style.css?v=14">
 </head>
 <body>
     <div id="game-container">
@@ -67,6 +67,18 @@
                         <span class="click-icon">🧠</span>
                         <span class="click-text">Generate Tokens</span>
                     </button>
+                </div>
+                <div id="click-meta">
+                    <div class="click-chip" id="click-chip-power" title="Tokens per click">
+                        <span class="click-chip-icon">👆</span>
+                        <span class="click-chip-label">per click</span>
+                        <span class="click-chip-value" id="click-power-display">+1</span>
+                    </div>
+                    <div class="click-chip" id="click-chip-auto" title="Tokens generated per second by your Tech Stack">
+                        <span class="click-chip-icon">⚙️</span>
+                        <span class="click-chip-label">auto</span>
+                        <span class="click-chip-value" id="auto-tps-display">+0/s</span>
+                    </div>
                 </div>
                 <div id="click-particles"></div>
 
