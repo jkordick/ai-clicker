@@ -793,14 +793,13 @@ const Game = {
         if (!this.state.ownedModels.includes(modelId)) return;
 
         if (this.state.activeModels.includes(modelId)) {
-            // Deactivate — only if more than 1 active
-            if (this.state.activeModels.length > 1) {
-                this.state.activeModels = this.state.activeModels.filter(id => id !== modelId);
-                UI.log(`Deactivated: ${model.name}`, 'info');
-                this.normalizeActiveModels(modelId);
-            } else {
-                UI.log(`Can't deactivate your only model! Activate another to swap.`, 'info');
+            // Deactivate — player's choice, even down to 0 active models
+            this.state.activeModels = this.state.activeModels.filter(id => id !== modelId);
+            UI.log(`Deactivated: ${model.name}`, 'info');
+            if (this.state.activeModels.length === 0) {
+                UI.log(`No active models — compute halted. Activate one to resume.`, 'warning');
             }
+            this.normalizeActiveModels(modelId);
         } else {
             // Activate — require a free slot. UI prevents reaching here when full.
             if (this.state.activeModels.length < this.getModelSlots()) {
