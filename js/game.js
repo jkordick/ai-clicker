@@ -570,7 +570,17 @@ const Game = {
             }
             totalIq += iq;
         }
-        return totalIq * (this.state.iqMultiplier || 1) * this.getResearchMultiplier();
+        // globalMultiplier represents "all production" boosts (context windows,
+        // RLHF, achievement bonuses, etc.) — so it must apply to IQ as well as
+        // TPS, otherwise descriptions like "All production +100%" are a lie for
+        // intelligence. Achievement bonus is folded in here too so it stacks
+        // symmetrically.
+        const globalMult = (this.state.globalMultiplier || 1)
+            * (1 + (this.state.achievementBonus || 0));
+        return totalIq
+            * (this.state.iqMultiplier || 1)
+            * globalMult
+            * this.getResearchMultiplier();
     },
 
     getModelSlots() {
