@@ -83,7 +83,11 @@ const Game = {
                     setTimeout(() => {
                         const timeStr = this.formatDuration(saved._offlineSeconds);
                         UI.log(
-                            `Welcome back (${timeStr}): +${UI.formatNumber(summary.tokens)} tokens, +${UI.formatNumber(summary.iq)} IQ`,
+                            I18n.t('log.welcomeBack', {
+                                time: timeStr,
+                                tokens: UI.formatNumber(summary.tokens),
+                                iq: UI.formatNumber(summary.iq),
+                            }),
                             'event'
                         );
                     }, 500);
@@ -169,7 +173,7 @@ const Game = {
                 <div class="model-opt-name">${model.name}</div>
                 <div class="model-opt-flavor">${model.flavor}</div>
                 <div class="model-opt-bonus">
-                    Drain: ${model.drain}/s → IQ: ${model.iqOutput}/s
+                    ${I18n.t('modal.modelOptionBonus', { drain: model.drain, iq: model.iqOutput })}
                     <br>${model.specialty.desc}
                 </div>
             </div>
@@ -191,7 +195,7 @@ const Game = {
         // Hide modal and start
         document.getElementById('model-select-overlay').classList.add('hidden');
         const model = this.findModel(modelId);
-        UI.log(`Model activated: ${model.name}! Let's build.`, 'achievement');
+        UI.log(I18n.t('log.modelActivatedStart', { name: model.name }), 'achievement');
         this.startGame();
     },
 
@@ -216,15 +220,15 @@ const Game = {
 
         UI.elements.saveBtn.addEventListener('click', () => {
             this.save();
-            UI.log('Game saved!', 'purchase');
+            UI.log(I18n.t('log.gameSaved'), 'purchase');
         });
 
         UI.elements.resetBtn.addEventListener('click', () => {
-            if (confirm('Are you sure? This will delete ALL progress!')) {
-                if (confirm('Really really sure? There\'s no undo!')) {
+            if (confirm(I18n.t('confirm.reset1'))) {
+                if (confirm(I18n.t('confirm.reset2'))) {
                     deleteSave();
                     this.state = getDefaultState();
-                    UI.log('Game reset. Starting fresh!', 'event');
+                    UI.log(I18n.t('log.gameReset'), 'event');
                     this.render();
                     this.showModelSelect();
                 }
@@ -271,7 +275,13 @@ const Game = {
         const nextThreshold = this.ASI_THRESHOLD_BASE
             * Math.pow(5, (this.state.asiAchieved || 0) + 1)
             * (hasResearch(this.state, 'singularity-approach') ? 0.5 : 1);
-        document.getElementById('prestige-iq-display').textContent = UI.formatNumber(this.state.intelligence);
+        // Localised body — interpolate IQ then set as HTML (contains <strong>)
+        const bodyEl = document.getElementById('prestige-body');
+        if (bodyEl) {
+            bodyEl.innerHTML = I18n.t('modal.prestigeBody', {
+                iq: UI.formatNumber(this.state.intelligence),
+            });
+        }
         document.getElementById('prestige-rp-gain').textContent = gain;
         document.getElementById('prestige-rp-total').textContent = newTotal;
         document.getElementById('prestige-next-threshold').textContent = UI.formatNumber(nextThreshold);
@@ -346,7 +356,7 @@ const Game = {
         this.save();
 
         document.getElementById('prestige-overlay').classList.add('hidden');
-        UI.log(`🌌 ASI achieved! Gained ${gain} RP (total earned: ${newRPTotal})`, 'achievement');
+        UI.log(I18n.t('log.asiAchieved', { gain, total: newRPTotal }), 'achievement');
         this.render();
 
         // Only show model select if we don't already have one
@@ -653,7 +663,7 @@ const Game = {
                     mult: model.specialty.chaosMult,
                     untilTick: tickNow + 10, // ~1 sec
                 };
-                UI.log(`💥 ${model.name}: chaos burst! ${model.specialty.chaosMult}× IQ for 1s`, 'event');
+                UI.log(I18n.t('log.chaosBurst', { name: model.name, mult: model.specialty.chaosMult }), 'event');
                 UI.flashModelChip(modelId);
             }
         }
@@ -692,8 +702,8 @@ const Game = {
         const newRank = currentRank + 1;
         UI.log(
             upgrade.maxRank > 1
-                ? `🔬 Researched: ${upgrade.name} (rank ${newRank}/${upgrade.maxRank})`
-                : `🔬 Researched: ${upgrade.name}`,
+                ? I18n.t('log.researchedRank', { name: upgrade.name, rank: newRank, max: upgrade.maxRank })
+                : I18n.t('log.researched', { name: upgrade.name }),
             'achievement'
         );
         // Re-render in case slot count, multipliers, etc. changed
@@ -726,9 +736,9 @@ const Game = {
             this.state.stats.tokensSpentBuildings += totalSpent;
             this.state.stats.buildingsPurchased += bought;
             if (bought === 1) {
-                UI.log(`Built ${building.name} (#${owned})`, 'purchase');
+                UI.log(I18n.t('log.builtSingle', { name: building.name, n: owned }), 'purchase');
             } else {
-                UI.log(`Built ${bought}x ${building.name} for 🪙${UI.formatNumber(totalSpent)}`, 'purchase');
+                UI.log(I18n.t('log.builtBulk', { qty: bought, name: building.name, cost: UI.formatNumber(totalSpent) }), 'purchase');
             }
             this.renderShop();
         }
@@ -745,7 +755,7 @@ const Game = {
             this.state.stats.tokensSpentUpgrades += upgrade.cost;
             this.state.stats.upgradesPurchased++;
             this.applyUpgrade(upgrade);
-            UI.log(`Unlocked: ${upgrade.name}!`, 'achievement');
+            UI.log(I18n.t('log.unlockedUpgrade', { name: upgrade.name }), 'achievement');
             this.renderShop();
         }
     },
@@ -757,7 +767,7 @@ const Game = {
 
         // Tier 6 (frontier/ASI-era) models gated behind first prestige
         if (model.tier >= 6 && (this.state.asiAchieved || 0) < 1) {
-            UI.log(`${model.name} requires ASI prestige to unlock.`, 'warning');
+            UI.log(I18n.t('log.requiresAsi', { name: model.name }), 'warning');
             return;
         }
 
@@ -782,7 +792,7 @@ const Game = {
             this.state.ownedModels.push(modelId);
             this.state.stats.iqSpentModels += cost;
             this.state.stats.modelsAcquired++;
-            UI.log(`Acquired: ${model.name}! Activate it from the Models tab.`, 'purchase');
+            UI.log(I18n.t('log.acquired', { name: model.name }), 'purchase');
             this.renderShop();
         }
     },
@@ -795,9 +805,9 @@ const Game = {
         if (this.state.activeModels.includes(modelId)) {
             // Deactivate — player's choice, even down to 0 active models
             this.state.activeModels = this.state.activeModels.filter(id => id !== modelId);
-            UI.log(`Deactivated: ${model.name}`, 'info');
+            UI.log(I18n.t('log.deactivated', { name: model.name }), 'info');
             if (this.state.activeModels.length === 0) {
-                UI.log(`No active models — compute halted. Activate one to resume.`, 'warning');
+                UI.log(I18n.t('log.deactivatedHalt'), 'warning');
             }
             this.normalizeActiveModels(modelId);
         } else {
@@ -805,9 +815,9 @@ const Game = {
             if (this.state.activeModels.length < this.getModelSlots()) {
                 this.state.activeModels.push(modelId);
                 this.state.stats.modelsActivated++;
-                UI.log(`Activated: ${model.name}!`, 'purchase');
+                UI.log(I18n.t('log.activated', { name: model.name }), 'purchase');
             } else {
-                UI.log(`Slots full! Deactivate a model first.`, 'warning');
+                UI.log(I18n.t('log.slotsFullWarn'), 'warning');
             }
         }
         this.renderShop();
@@ -827,7 +837,12 @@ const Game = {
             if (removeIdx < 0) break;
             const removed = this.state.activeModels.splice(removeIdx, 1)[0];
             const removedModel = this.findModel(removed);
-            UI.log(`Auto-deactivated ${removedModel ? removedModel.name : 'a model'} (no slot)`, 'info');
+            UI.log(
+                removedModel
+                    ? I18n.t('log.autoDeactivated', { name: removedModel.name })
+                    : I18n.t('log.autoDeactivatedAnon'),
+                'info'
+            );
         }
     },
 
@@ -899,7 +914,7 @@ const Game = {
 
     save() {
         saveGame(this.state);
-        UI.updateSaveIndicator(`Last saved: ${new Date().toLocaleTimeString()}`);
+        UI.updateSaveIndicator(I18n.t('footer.lastSaved', { time: new Date().toLocaleTimeString() }));
     },
 
     autoSave() {
@@ -930,7 +945,7 @@ const Game = {
         }
         if (newlyUnlocked.length > 0) {
             for (const ach of newlyUnlocked) {
-                UI.log(`🏆 Achievement: ${ach.name} — ${ach.desc} (+1% global)`, 'achievement');
+                UI.log(I18n.t('log.achievementUnlocked', { name: ach.name, desc: ach.desc }), 'achievement');
             }
             this.recomputeAchievementBonus();
         }

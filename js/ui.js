@@ -24,63 +24,42 @@ const UI = {
             clickChipAuto: document.getElementById('click-chip-auto'),
         };
 
+        // Apply static localisation bindings before any dynamic rendering
+        I18n.applyToDOM(document);
+
         this.setupTabs();
         this.setupShiftTracker();
         this.setupTipsRotation();
     },
 
-    TIPS: [
-        '⚡ Hold SHIFT and click a Tech Stack item to buy 10x at once.',
-        '💥 5% of your clicks crit for 3x tokens! Boost it with Beam Search and Strawberry.',
-        '🤖 Hover over an active model in the top bar to see its specialty perk.',
-        '🔄 Slots full? Deactivate a current model to free a slot.',
-        '💧 If drain exceeds earnings, your tokens deplete and IQ production slows to a crawl.',
-        '🧠 Spend Intelligence on better models — each tier multiplies your IQ generation.',
-        '📦 Two upgrades unlock extra model slots: Parallel Inference and Model Orchestration.',
-        '🎯 Different models specialize: some boost TPS, click power, or reduce drain.',
-        '💾 Your progress auto-saves every 30 seconds and when you close the tab.',
-        '🌳 Chain-of-Thought, Knowledge Distillation, and Recursive Self-Improvement multiply IQ gain.',
-        '📦 INT8 Quantization and Speculative Decoding reduce all model drain.',
-        '🪙 Click the brain to manually generate tokens — useful in the early game.',
-        '🏗️ Buildings stack: each unit adds to your tokens-per-second.',
-        '🔒 Locked upgrades show their requirements — keep building to unlock them.',
-        '🎲 Gronk models are chaotic: random IQ bursts make output unpredictable.',
-        '💡 The Tech Stack tab is where you grow your passive token income.',
-        '⬆️ Higher-tier models cost more IQ but produce vastly more — invest in upgrades.',
-        '🎼 Run multiple models with different specialties to stack their bonuses.',
-        '👁️ Hover any stat in the top bar for an explanation of what it does.',
-        '🌌 Reach the ASI threshold (starts at 1M, x5 per prestige) to earn Research Points.',
-        '🌌 Each prestige raises the bar x5: 1M → 5M → 25M → 125M... compound your RP wisely.',
-        '🔬 Research Points spent in the Research Lab unlock permanent perks that survive prestige.',
-        '🧠 Cognitive Bandwidth is the bread and butter — buy 10 ranks for a 250% TPS & IQ boost.',
-        '🌊 New: Vibe Coding adds % of TPS to every click — keeps clicks relevant in late game.',
-        '🏆 Achievements stack a permanent +1% global multiplier each. Free progress!',
-        '🍓 Strawberry Memory permanently adds +10% crit chance for just 1 RP.',
-        '💾 Persistent Knowledge keeps your highest-tier model across prestige.',
-        '⚛️ Quantum Cluster is the top tech-stack tier; ASI sits beyond it as the prestige goal.',
-        '🪞 AGI is the wildest building — human-level general intelligence. The last step before ASI.',
-    ],
+    TIPS: [], // populated from I18n at rotation time so locale swaps take effect
 
     setupTipsRotation() {
         const tipText = document.getElementById('tip-text');
         if (!tipText) return;
 
+        const tips = () => I18n.list('tips');
         let lastIdx = -1;
         const showRandomTip = () => {
+            const pool = tips();
+            if (pool.length === 0) return;
             let idx;
-            do { idx = Math.floor(Math.random() * this.TIPS.length); }
-            while (idx === lastIdx && this.TIPS.length > 1);
+            do { idx = Math.floor(Math.random() * pool.length); }
+            while (idx === lastIdx && pool.length > 1);
             lastIdx = idx;
 
             tipText.classList.add('fading');
             setTimeout(() => {
-                tipText.textContent = this.TIPS[idx];
+                tipText.textContent = pool[idx];
                 tipText.classList.remove('fading');
             }, 400);
         };
 
         // Show first tip immediately (no fade)
-        tipText.textContent = this.TIPS[Math.floor(Math.random() * this.TIPS.length)];
+        const pool = tips();
+        if (pool.length > 0) {
+            tipText.textContent = pool[Math.floor(Math.random() * pool.length)];
+        }
         setInterval(showRandomTip, 60_000);
     },
 
@@ -197,13 +176,13 @@ const UI = {
         const netEl = document.getElementById('token-net');
         if (netEl) {
             if (net > 0) {
-                netEl.textContent = `net +${this.formatTps(net)}/s`;
+                netEl.textContent = I18n.t('stats.net.positive', { rate: this.formatTps(net) });
                 netEl.className = 'stat-net positive';
             } else if (net < 0) {
-                netEl.textContent = `net ${this.formatTps(net)}/s`;
+                netEl.textContent = I18n.t('stats.net.negative', { rate: this.formatTps(net) });
                 netEl.className = 'stat-net negative';
             } else {
-                netEl.textContent = 'net ±0/s';
+                netEl.textContent = I18n.t('stats.net.zero');
                 netEl.className = 'stat-net zero';
             }
         }
@@ -268,92 +247,92 @@ const UI = {
 
         panel.innerHTML = `
             <div class="stats-section click-power">
-                <h3 class="stats-section-title">⚡ Click Power</h3>
-                ${row('Click power', fmt(clickPower), 'gold')}
-                ${row('Click multiplier', x(s.clickMultiplier), 'accent')}
-                ${row('Crit chance', pct(critChance), 'accent')}
-                ${row('Crit multiplier', x(critMult), 'accent')}
-                ${row('Total clicks', fmt(st.lifetimeClicks))}
-                ${row('Total crits', fmt(st.totalCrits))}
-                ${row('Observed crit rate', pct(observedCritRate))}
-                ${row('Tokens from crits', fmt(st.critTokensGained), 'positive')}
+                <h3 class="stats-section-title">${I18n.t('stats.section.clickPower')}</h3>
+                ${row(I18n.t('stats.row.clickPower'), fmt(clickPower), 'gold')}
+                ${row(I18n.t('stats.row.clickMultiplier'), x(s.clickMultiplier), 'accent')}
+                ${row(I18n.t('stats.row.critChance'), pct(critChance), 'accent')}
+                ${row(I18n.t('stats.row.critMultiplier'), x(critMult), 'accent')}
+                ${row(I18n.t('stats.row.totalClicks'), fmt(st.lifetimeClicks))}
+                ${row(I18n.t('stats.row.totalCrits'), fmt(st.totalCrits))}
+                ${row(I18n.t('stats.row.observedCritRate'), pct(observedCritRate))}
+                ${row(I18n.t('stats.row.tokensFromCrits'), fmt(st.critTokensGained), 'positive')}
             </div>
 
             <div class="stats-section income">
-                <h3 class="stats-section-title">🪙 Income</h3>
-                ${row('Tokens / sec', '+' + fmtRate(tps), 'positive')}
-                ${row('Global multiplier', x(s.globalMultiplier), 'accent')}
-                ${row('Cost multiplier', x(s.costMultiplier), s.costMultiplier < 1 ? 'positive' : '')}
-                ${row('Current tokens', fmt(s.tokens), 'gold')}
-                ${row('Peak tokens', fmt(st.highestTokens))}
-                ${row('Peak TPS', '+' + fmt(st.highestTps) + '/s')}
-                ${row('Tokens earned (run)', fmt(s.totalTokens))}
-                ${row('Tokens earned (lifetime)', fmt(st.lifetimeTokens))}
-                ${row('Spent on buildings', fmt(st.tokensSpentBuildings), 'negative')}
-                ${row('Spent on upgrades', fmt(st.tokensSpentUpgrades), 'negative')}
+                <h3 class="stats-section-title">${I18n.t('stats.section.income')}</h3>
+                ${row(I18n.t('stats.row.tokensPerSec'), '+' + fmtRate(tps), 'positive')}
+                ${row(I18n.t('stats.row.globalMultiplier'), x(s.globalMultiplier), 'accent')}
+                ${row(I18n.t('stats.row.costMultiplier'), x(s.costMultiplier), s.costMultiplier < 1 ? 'positive' : '')}
+                ${row(I18n.t('stats.row.currentTokens'), fmt(s.tokens), 'gold')}
+                ${row(I18n.t('stats.row.peakTokens'), fmt(st.highestTokens))}
+                ${row(I18n.t('stats.row.peakTps'), '+' + fmt(st.highestTps) + '/s')}
+                ${row(I18n.t('stats.row.tokensEarnedRun'), fmt(s.totalTokens))}
+                ${row(I18n.t('stats.row.tokensEarnedLifetime'), fmt(st.lifetimeTokens))}
+                ${row(I18n.t('stats.row.spentBuildings'), fmt(st.tokensSpentBuildings), 'negative')}
+                ${row(I18n.t('stats.row.spentUpgrades'), fmt(st.tokensSpentUpgrades), 'negative')}
             </div>
 
             <div class="stats-section intelligence">
-                <h3 class="stats-section-title">🧠 Intelligence</h3>
-                ${row('IQ / sec', '+' + fmtRate(iqps), 'accent')}
-                ${row('IQ multiplier', x(s.iqMultiplier), 'accent')}
-                ${row('Research multiplier', x(researchMult), researchMult > 1 ? 'positive' : '')}
-                ${formula(`+${(researchMult - 1) * 100 | 0}% from Cognitive Bandwidth research`)}
-                ${row('Current IQ', fmt(s.intelligence), 'accent')}
-                ${row('Peak IQ', fmt(st.highestIntelligence))}
-                ${row('Peak IQ/s', '+' + fmt(st.highestIqps) + '/s')}
-                ${row('IQ earned (run)', fmt(s.totalIntelligence))}
-                ${row('IQ earned (lifetime)', fmt(st.lifetimeIntelligence))}
-                ${row('IQ spent on models', fmt(st.iqSpentModels), 'negative')}
+                <h3 class="stats-section-title">${I18n.t('stats.section.intelligence')}</h3>
+                ${row(I18n.t('stats.row.iqPerSec'), '+' + fmtRate(iqps), 'accent')}
+                ${row(I18n.t('stats.row.iqMultiplier'), x(s.iqMultiplier), 'accent')}
+                ${row(I18n.t('stats.row.researchMultiplier'), x(researchMult), researchMult > 1 ? 'positive' : '')}
+                ${formula(I18n.t('stats.formula.cognitiveBandwidth', { percent: (researchMult - 1) * 100 | 0 }))}
+                ${row(I18n.t('stats.row.currentIq'), fmt(s.intelligence), 'accent')}
+                ${row(I18n.t('stats.row.peakIq'), fmt(st.highestIntelligence))}
+                ${row(I18n.t('stats.row.peakIqps'), '+' + fmt(st.highestIqps) + '/s')}
+                ${row(I18n.t('stats.row.iqEarnedRun'), fmt(s.totalIntelligence))}
+                ${row(I18n.t('stats.row.iqEarnedLifetime'), fmt(st.lifetimeIntelligence))}
+                ${row(I18n.t('stats.row.iqSpentModels'), fmt(st.iqSpentModels), 'negative')}
             </div>
 
             <div class="stats-section drain">
-                <h3 class="stats-section-title">🔥 Drain Breakdown</h3>
-                ${row('Model drain', '-' + fmtRate(modelDrain), 'negative')}
-                ${row('Compute cost (5% TPS)', '-' + fmtRate(computeCost), 'negative')}
-                ${row('Total drain', '-' + fmtRate(drain), 'negative')}
-                ${row('Drain multiplier', x(drainMult), drainMult < 1 ? 'positive' : '')}
-                ${row('Net token flow', (tps - drain >= 0 ? '+' : '') + fmtRate(tps - drain),
+                <h3 class="stats-section-title">${I18n.t('stats.section.drain')}</h3>
+                ${row(I18n.t('stats.row.modelDrain'), '-' + fmtRate(modelDrain), 'negative')}
+                ${row(I18n.t('stats.row.computeCost'), '-' + fmtRate(computeCost), 'negative')}
+                ${row(I18n.t('stats.row.totalDrain'), '-' + fmtRate(drain), 'negative')}
+                ${row(I18n.t('stats.row.drainMultiplier'), x(drainMult), drainMult < 1 ? 'positive' : '')}
+                ${row(I18n.t('stats.row.netTokenFlow'), (tps - drain >= 0 ? '+' : '') + fmtRate(tps - drain),
                     tps - drain >= 0 ? 'positive' : 'negative')}
-                ${row('Active models', `${s.activeModels.length} / ${slots}`)}
+                ${row(I18n.t('stats.row.activeModels'), `${s.activeModels.length} / ${slots}`)}
             </div>
 
             <div class="stats-section prestige">
-                <h3 class="stats-section-title">🌌 Prestige</h3>
-                ${row('Research Points (available)', fmt(s.researchPoints || 0), 'accent')}
-                ${row('Research Points (earned)', fmt(s.researchPointsTotal || 0))}
-                ${row('Times prestiged (ASI)', fmt(s.asiAchieved || 0))}
-                ${row('Current ASI threshold', fmt(Game.ASI_THRESHOLD) + ' IQ', 'gold')}
-                ${row('Available RP now', fmt(Game.calculatePrestigeGain()), 'gold')}
-                ${row('IQ for next RP', fmt(nextRPThreshold))}
-                ${row('Next prestige threshold', fmt(Game.ASI_THRESHOLD * 5) + ' IQ')}
-                ${formula('Threshold x5 per prestige; RP = floor((IQ / threshold)^0.6 × 3)')}
+                <h3 class="stats-section-title">${I18n.t('stats.section.prestige')}</h3>
+                ${row(I18n.t('stats.row.rpAvailable'), fmt(s.researchPoints || 0), 'accent')}
+                ${row(I18n.t('stats.row.rpEarned'), fmt(s.researchPointsTotal || 0))}
+                ${row(I18n.t('stats.row.timesPrestiged'), fmt(s.asiAchieved || 0))}
+                ${row(I18n.t('stats.row.currentAsiThreshold'), I18n.t('stats.valueIq', { n: fmt(Game.ASI_THRESHOLD) }), 'gold')}
+                ${row(I18n.t('stats.row.availableRpNow'), fmt(Game.calculatePrestigeGain()), 'gold')}
+                ${row(I18n.t('stats.row.iqForNextRp'), fmt(nextRPThreshold))}
+                ${row(I18n.t('stats.row.nextPrestigeThreshold'), I18n.t('stats.valueIq', { n: fmt(Game.ASI_THRESHOLD * 5) }))}
+                ${formula(I18n.t('stats.formula.prestige'))}
             </div>
 
             <div class="stats-section achievements">
-                <h3 class="stats-section-title">🏆 Achievements (${achUnlocked} / ${achTotal})</h3>
-                ${row('Achievement bonus', '+' + (achBonus * 100).toFixed(0) + '% global', achBonus > 0 ? 'positive' : '')}
+                <h3 class="stats-section-title">${I18n.t('stats.section.achievementsTitle', { unlocked: achUnlocked, total: achTotal })}</h3>
+                ${row(I18n.t('stats.row.achievementBonus'), I18n.t('stats.achievementBonusPct', { percent: (achBonus * 100).toFixed(0) }), achBonus > 0 ? 'positive' : '')}
                 <div class="achievements-grid">
                     ${achList.map(a => {
                         const got = (s.achievements || []).includes(a.id);
                         return `<div class="achievement-row ${got ? 'unlocked' : 'locked'}" title="${a.desc}">
                             <span class="achievement-icon">${got ? '🏆' : '🔒'}</span>
-                            <span class="achievement-name">${got ? a.name : '???'}</span>
-                            <span class="achievement-desc">${got ? a.desc : '???'}</span>
+                            <span class="achievement-name">${got ? a.name : I18n.t('stats.achievementUnknownName')}</span>
+                            <span class="achievement-desc">${got ? a.desc : I18n.t('stats.achievementUnknownDesc')}</span>
                         </div>`;
                     }).join('')}
                 </div>
             </div>
 
             <div class="stats-section session">
-                <h3 class="stats-section-title">📊 Session</h3>
-                ${row('Session time', session)}
-                ${row('Total playtime', playtime)}
-                ${row('Buildings owned', fmt(totalBuildings))}
-                ${row('Upgrades purchased', fmt(st.upgradesPurchased))}
-                ${row('Models acquired', fmt(st.modelsAcquired))}
-                ${row('Model swaps', fmt(st.modelsActivated))}
-                ${row('Model slots', `${s.activeModels.length} / ${slots}`)}
+                <h3 class="stats-section-title">${I18n.t('stats.section.session')}</h3>
+                ${row(I18n.t('stats.row.sessionTime'), session)}
+                ${row(I18n.t('stats.row.totalPlaytime'), playtime)}
+                ${row(I18n.t('stats.row.buildingsOwned'), fmt(totalBuildings))}
+                ${row(I18n.t('stats.row.upgradesPurchased'), fmt(st.upgradesPurchased))}
+                ${row(I18n.t('stats.row.modelsAcquired'), fmt(st.modelsAcquired))}
+                ${row(I18n.t('stats.row.modelSwaps'), fmt(st.modelsActivated))}
+                ${row(I18n.t('stats.row.modelSlots'), `${s.activeModels.length} / ${slots}`)}
             </div>
         `;
     },
@@ -371,13 +350,16 @@ const UI = {
         const pct = Math.min(intel / threshold, 1) * 100;
 
         fillEl.style.width = `${pct}%`;
-        textEl.textContent = `${this.formatNumber(intel)} / ${this.formatNumber(threshold)} IQ`;
+        textEl.textContent = I18n.t('asi.barText', {
+            intel: this.formatNumber(intel),
+            threshold: this.formatNumber(threshold),
+        });
 
         const canPrestige = intel >= threshold;
         btnEl.style.display = canPrestige ? 'block' : 'none';
         if (canPrestige) {
             const gain = Game.calculatePrestigeGain();
-            btnEl.textContent = `⚡ ACHIEVE ASI & PRESTIGE (+${gain} RP)`;
+            btnEl.textContent = I18n.t('asi.prestigeBtnWithGain', { gain });
         }
 
         // Show RP badge if any
@@ -408,7 +390,7 @@ const UI = {
         bar.dataset.lastKey = key;
 
         if (activeModels.length === 0) {
-            bar.innerHTML = '<span class="no-models">None</span>';
+            bar.innerHTML = `<span class="no-models">${I18n.t('header.activeNone')}</span>`;
             return;
         }
 
@@ -440,10 +422,16 @@ const UI = {
             let statsText;
             if (building.isClickUpgrade) {
                 const totalBonus = owned * building.clickBonus * multiplier;
-                statsText = `+${building.clickBonus * multiplier} per click each | Total: +${totalBonus} click power`;
+                statsText = I18n.t('shop.building.perClickStats', {
+                    bonus: building.clickBonus * multiplier,
+                    total: totalBonus,
+                });
             } else {
                 const tps = getBuildingTps(building, owned, multiplier * state.globalMultiplier);
-                statsText = `+${this.formatTps(building.baseTps * multiplier * state.globalMultiplier)} TPS each | Total: ${this.formatTps(tps)} TPS`;
+                statsText = I18n.t('shop.building.tpsStats', {
+                    base: this.formatTps(building.baseTps * multiplier * state.globalMultiplier),
+                    total: this.formatTps(tps),
+                });
             }
 
             // Compute bulk x10 cost (best-effort: assume current state)
@@ -468,9 +456,9 @@ const UI = {
                     <div class="building-right">
                         <div class="building-cost">
                             <span class="cost-single">🪙 ${this.formatNumber(cost)}</span>
-                            <span class="cost-bulk">x10: 🪙 ${this.formatNumber(bulkCost)}</span>
+                            <span class="cost-bulk">${I18n.t('shop.building.costX10', { cost: this.formatNumber(bulkCost) })}</span>
                         </div>
-                        <div class="building-owned">Owned: ${owned}</div>
+                        <div class="building-owned">${I18n.t('shop.building.owned', { n: owned })}</div>
                     </div>
                 </div>
             `;
@@ -519,27 +507,27 @@ const UI = {
                         <div class="upgrade-name">${upgrade.name}${purchased ? ' ✓' : ''}</div>
                         <div class="upgrade-desc">${upgrade.description}</div>
                     </div>
-                    <div class="upgrade-cost">${purchased ? 'OWNED' : '🪙 ' + this.formatNumber(upgrade.cost)}</div>
+                    <div class="upgrade-cost">${purchased ? I18n.t('shop.upgrade.owned') : '🪙 ' + this.formatNumber(upgrade.cost)}</div>
                 </div>
             `;
         }).join('');
 
         // Show preview of locked upgrades
         const lockedHtml = locked.length > 0 ? `
-            <div class="upgrades-locked-header">🔒 ${locked.length} more upgrade${locked.length > 1 ? 's' : ''} to discover...</div>
+            <div class="upgrades-locked-header">${I18n.t(locked.length > 1 ? 'shop.upgrade.lockedHeaderMany' : 'shop.upgrade.lockedHeaderOne', { n: locked.length })}</div>
             ${locked.slice(0, 3).map(u => `
                 <div class="upgrade-card locked">
                     <div class="upgrade-icon">❓</div>
                     <div class="upgrade-info">
-                        <div class="upgrade-name">???</div>
-                        <div class="upgrade-desc">Requires: ${u.requires.count}x ${this.getBuildingName(u.requires.building)}</div>
+                        <div class="upgrade-name">${I18n.t('shop.upgrade.lockedUnknown')}</div>
+                        <div class="upgrade-desc">${I18n.t('shop.upgrade.lockedRequires', { count: u.requires.count, building: this.getBuildingName(u.requires.building) })}</div>
                     </div>
                     <div class="upgrade-cost">🔒</div>
                 </div>
             `).join('')}
         ` : '';
 
-        this.elements.upgradesList.innerHTML = (html + lockedHtml) || '<div class="upgrade-card"><div class="upgrade-info"><div class="upgrade-desc">Keep building to unlock upgrades...</div></div></div>';
+        this.elements.upgradesList.innerHTML = (html + lockedHtml) || `<div class="upgrade-card"><div class="upgrade-info"><div class="upgrade-desc">${I18n.t('shop.upgrade.empty')}</div></div></div>`;
 
         // Attach click handlers
         this.elements.upgradesList.querySelectorAll('.upgrade-card:not(.purchased):not(.locked)').forEach(card => {
@@ -566,22 +554,26 @@ const UI = {
         header.innerHTML = `
             <div class="research-summary">
                 <div class="research-rp">
-                    <span class="rp-label">Research Points</span>
-                    <span class="rp-value">🔬 ${this.formatNumber(availableRP)}</span>
+                    <span class="rp-label">${I18n.t('shop.research.header')}</span>
+                    <span class="rp-value">${I18n.t('shop.research.availableRP', { rp: this.formatNumber(availableRP) })}</span>
                 </div>
                 <div class="research-meta">
-                    <span>Spent: ${this.formatNumber(spentRP)}</span>
-                    <span>Earned (lifetime): ${this.formatNumber(totalRP)}</span>
+                    <span>${I18n.t('shop.research.spent', { n: this.formatNumber(spentRP) })}</span>
+                    <span>${I18n.t('shop.research.earnedLifetime', { n: this.formatNumber(totalRP) })}</span>
                 </div>
             </div>
-            <div class="shop-hint">🔬 Permanent perks. Survive prestige. Spend wisely.</div>
+            <div class="shop-hint">${I18n.t('shop.research.hint')}</div>
         `;
 
         // Group by tier
         const tiers = { 1: [], 2: [], 3: [] };
         for (const u of researchUpgrades) tiers[u.tier].push(u);
 
-        const tierLabels = { 1: 'Foundational', 2: 'Advanced', 3: 'Endgame' };
+        const tierLabels = {
+            1: I18n.t('shop.research.tierLabel1'),
+            2: I18n.t('shop.research.tierLabel2'),
+            3: I18n.t('shop.research.tierLabel3'),
+        };
 
         const renderCard = (upgrade) => {
             const rank = getResearchRank(state, upgrade.id);
@@ -590,11 +582,11 @@ const UI = {
             const affordable = !maxed && availableRP >= cost;
             const cssClass = maxed ? 'maxed' : (affordable ? 'affordable' : 'cant-afford');
             const rankLabel = upgrade.maxRank > 1
-                ? `<span class="research-rank">[${rank}/${upgrade.maxRank}]</span>`
+                ? `<span class="research-rank">${I18n.t('shop.research.rank', { rank, max: upgrade.maxRank })}</span>`
                 : '';
             const costLabel = maxed
-                ? 'MAXED'
-                : `🔬 ${cost} RP`;
+                ? I18n.t('shop.research.maxed')
+                : I18n.t('shop.research.cost', { cost });
             return `
                 <div class="upgrade-card research-card ${cssClass}" data-research-id="${upgrade.id}">
                     <div class="upgrade-icon">${upgrade.icon}</div>
@@ -610,7 +602,7 @@ const UI = {
         let html = '';
         for (const tier of [1, 2, 3]) {
             if (tiers[tier].length === 0) continue;
-            html += `<div class="research-tier-header">⟨ ${tierLabels[tier]} ⟩</div>`;
+            html += `<div class="research-tier-header">${I18n.t('shop.research.tierHeader', { label: tierLabels[tier] })}</div>`;
             html += tiers[tier].map(renderCard).join('');
         }
         list.innerHTML = html;
@@ -658,16 +650,16 @@ const UI = {
                 if (owned && !active && slotsFull) cssClass += ' slots-full';
                 let actionText, actionClass;
                 if (active) {
-                    actionText = '⏹ DEACTIVATE';
+                    actionText = I18n.t('shop.model.deactivate');
                     actionClass = 'active';
                 } else if (owned) {
-                    actionText = slotsFull ? '🔒 SLOTS FULL' : '▶ ACTIVATE';
+                    actionText = slotsFull ? I18n.t('shop.model.slotsFull') : I18n.t('shop.model.activate');
                     actionClass = slotsFull ? 'disabled' : 'owned';
                 } else if (tierLocked) {
-                    actionText = '🔒 REQUIRES ASI PRESTIGE';
+                    actionText = I18n.t('shop.model.requiresAsi');
                     actionClass = '';
                 } else {
-                    actionText = `🧠 ${this.formatNumber(cost)}`;
+                    actionText = I18n.t('shop.model.cost', { cost: this.formatNumber(cost) });
                     actionClass = '';
                 }
 
@@ -702,7 +694,7 @@ const UI = {
                 if (state.ownedModels.includes(id)) {
                     // If slots full and not currently active, refuse (clear messaging)
                     if (!state.activeModels.includes(id) && state.activeModels.length >= Game.getModelSlots()) {
-                        UI.log('Slots full — deactivate a model first.', 'warning');
+                        UI.log(I18n.t('log.slotsFullDeactivateHint'), 'warning');
                         return;
                     }
                     onActivate(id);
@@ -721,7 +713,9 @@ const UI = {
         const pop = document.createElement('div');
         pop.className = 'counter-pop';
         if (isCrit) pop.classList.add('crit');
-        pop.textContent = isCrit ? `CRIT! +${this.formatNumber(amount)}` : `+${this.formatNumber(amount)}`;
+        pop.textContent = isCrit
+            ? I18n.t('click.critPop', { amount: this.formatNumber(amount) })
+            : I18n.t('click.normalPop', { amount: this.formatNumber(amount) });
 
         // Random offset around center of the button
         const offsetX = (Math.random() - 0.5) * 80;
@@ -745,7 +739,7 @@ const UI = {
         const particle = document.createElement('div');
         particle.className = 'particle';
         if (isCrit) particle.classList.add('crit');
-        particle.textContent = `+${this.formatNumber(amount)}`;
+        particle.textContent = I18n.t('click.normalPop', { amount: this.formatNumber(amount) });
         particle.style.left = `${x + (Math.random() - 0.5) * 40}px`;
         particle.style.top = `${y - 20}px`;
         this.elements.clickParticles.appendChild(particle);
