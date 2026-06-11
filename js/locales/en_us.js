@@ -258,7 +258,7 @@ I18n.register('en_us', {
         '🌌 Each prestige raises the bar x5: 1M → 5M → 25M → 125M... compound your RP wisely.',
         '🔬 Research Points spent in the Research Lab unlock permanent perks that survive prestige.',
         '🧠 Cognitive Bandwidth is the bread and butter — buy 10 ranks for a 250% TPS & IQ boost.',
-        '🌊 New: Vibe Coding adds % of TPS to every click — keeps clicks relevant in late game.',
+        '🌊 New: Vibe Coding adds % of TPS to every click.',
         '🏆 Achievements stack a permanent +1% global multiplier each. Free progress!',
         '🍓 Strawberry Memory permanently adds +10% crit chance for just 1 RP.',
         '💾 Persistent Knowledge keeps your highest-tier model across prestige.',
