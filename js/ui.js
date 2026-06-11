@@ -33,7 +33,7 @@ const UI = {
         '⚡ Hold SHIFT and click a Tech Stack item to buy 10x at once.',
         '💥 5% of your clicks crit for 3x tokens! Boost it with Beam Search and Strawberry.',
         '🤖 Hover over an active model in the top bar to see its specialty perk.',
-        '🔄 Slots full? Deactivate a current model to free a slot — no more silent swaps.',
+        '🔄 Slots full? Deactivate a current model to free a slot.',
         '💧 If drain exceeds earnings, your tokens deplete and IQ production slows to a crawl.',
         '🧠 Spend Intelligence on better models — each tier multiplies your IQ generation.',
         '📦 Two upgrades unlock extra model slots: Parallel Inference and Model Orchestration.',
